@@ -2,7 +2,11 @@
 #include "core/Window.hpp"
 #include "core/Timer.hpp"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <memory>
+#include <cstdio>
 
 class Application 
 {

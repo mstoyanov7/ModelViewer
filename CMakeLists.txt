@@ -27,6 +27,13 @@ else()
   set(GLFW_TARGET glfw)
 endif()
 
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
 find_package(OpenGL REQUIRED)
 
 add_library(glad external/glad/src/glad.c)
@@ -37,8 +44,9 @@ add_executable(model_viewer
   src/core/Application.cpp
   src/platform/glfw/GlfwWindow.cpp
   src/gfx/Shader.cpp
-  src/scenes/TriangleScene.cpp
+  src/scenes/CubeScene.cpp
   src/app/ModelViewerApp.cpp
+  src/core/Camera.cpp
 )
 
 target_include_directories(model_viewer PRIVATE
@@ -55,6 +63,7 @@ target_link_libraries(model_viewer PRIVATE
   glad
   ${GLFW_TARGET}
   OpenGL::GL
+  glm
 )
 
 if (MSVC)

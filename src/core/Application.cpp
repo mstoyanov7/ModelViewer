@@ -1,10 +1,5 @@
 #include "core/Application.hpp"
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <cstdio>
-
 Application::Application(std::unique_ptr<IWindow> window)
     : m_Window(std::move(window)) {}
 
@@ -42,5 +37,6 @@ int Application::Run()
         m_Window->SwapBuffers();
         m_Window->PollEvents();
     }
+
     return 0;
 }
