@@ -21,12 +21,10 @@ int Application::Run()
     while (!m_Window->ShouldClose())
     {
         double dt = timer.Tick();
-        (void)dt;
 
         int w = 0, h = 0;
         m_Window->GetFramebufferSize(w, h);
-        if (w != fbw || h != fbh)
-        {
+        if (w != fbw || h != fbh) {
             fbw = w; fbh = h;
             glViewport(0, 0, fbw, fbh);
             OnResize(fbw, fbh);
@@ -41,9 +39,6 @@ int Application::Run()
 
         m_Window->SwapBuffers();
         m_Window->PollEvents();
-
-        glEnable(GL_DEPTH_TEST);
     }
-
     return 0;
 }

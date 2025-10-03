@@ -1,13 +1,11 @@
 #pragma once
 #include "core/Window.hpp"
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <string>
 
-class GlfwWindow final : public IWindow 
-{
+// forward declare; avoid including GLFW here
+struct GLFWwindow;
+
+class GlfwWindow final : public IWindow {
 public:
     explicit GlfwWindow(const WindowProps& props);
     ~GlfwWindow() override;
@@ -21,8 +19,6 @@ public:
     bool IsVSync() const override { return m_VSync; }
 
     void GetFramebufferSize(int& w, int& h) const override { w = m_FBWidth; h = m_FBHeight; }
-
-    GLFWwindow* Handle() const { return m_Handle; }
 
 private:
     static void FramebufferSizeCallback(GLFWwindow* win, int w, int h);

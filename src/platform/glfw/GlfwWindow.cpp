@@ -1,24 +1,23 @@
 #include "platform/glfw/GlfwWindow.hpp"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <stdexcept>
 #include <cstdio>
 
 namespace 
-{
-    int g_glfwRefCount = 0;
+{ 
+    int g_glfwRefCount = 0; 
 }
 
 GlfwWindow::GlfwWindow(const WindowProps& props) 
 {
     if (g_glfwRefCount++ == 0) 
     {
-        if (!glfwInit()) 
-        {
-            throw std::runtime_error("GLFW init failed");
-        }
+        if (!glfwInit()) throw std::runtime_error("GLFW init failed");
     }
 
-    // Request modern context
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -47,9 +46,8 @@ GlfwWindow::GlfwWindow(const WindowProps& props)
 GlfwWindow::~GlfwWindow() 
 {
     if (m_Handle) 
-    {
-        glfwDestroyWindow(m_Handle);
-        m_Handle = nullptr;
+    { 
+        glfwDestroyWindow(m_Handle); m_Handle = nullptr; 
     }
 
     if (--g_glfwRefCount == 0) 
@@ -74,19 +72,18 @@ bool GlfwWindow::ShouldClose() const
 }
 
 void GlfwWindow::SetTitle(const std::string& title) 
-{
-    glfwSetWindowTitle(m_Handle, title.c_str());
+{ 
+    glfwSetWindowTitle(m_Handle, title.c_str()); 
 }
 
 void GlfwWindow::SetVSync(bool enabled) 
-{
-    m_VSync = enabled;
-    glfwSwapInterval(m_VSync ? 1 : 0);
+{ 
+    m_VSync = enabled; 
+    glfwSwapInterval(m_VSync ? 1 : 0); 
 }
 
 void GlfwWindow::FramebufferSizeCallback(GLFWwindow* win, int w, int h) 
 {
     auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(win));
-    self->m_FBWidth = w;
-    self->m_FBHeight = h;
+    self->m_FBWidth = w; self->m_FBHeight = h;
 }
