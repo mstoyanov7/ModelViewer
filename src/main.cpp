@@ -1,9 +1,10 @@
 #include "platform/glfw/GlfwWindow.hpp"
 #include "app/ModelViewerApp.hpp"
 
-int main() {
+int main() 
+{
     WindowProps props;
-    props.title  = "OpenGL — Triangle";
+    props.title  = "OpenGL — Rotating Cube";
     props.width  = 1280;
     props.height = 720;
     props.vsync  = true;
