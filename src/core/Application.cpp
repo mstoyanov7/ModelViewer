@@ -24,7 +24,9 @@ int Application::Run()
 
         int w = 0, h = 0;
         m_Window->GetFramebufferSize(w, h);
-        if (w != fbw || h != fbh) {
+        
+        if (w != fbw || h != fbh) 
+        {
             fbw = w; fbh = h;
             glViewport(0, 0, fbw, fbh);
             OnResize(fbw, fbh);

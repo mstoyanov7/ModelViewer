@@ -36,6 +36,9 @@ add_executable(model_viewer
   src/main.cpp
   src/core/Application.cpp
   src/platform/glfw/GlfwWindow.cpp
+  src/gfx/Shader.cpp
+  src/scenes/TriangleScene.cpp
+  src/app/ModelViewerApp.cpp
 )
 
 target_include_directories(model_viewer PRIVATE

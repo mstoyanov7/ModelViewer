@@ -1,30 +1,36 @@
 #pragma once
 #include <chrono>
 
-
 class Timer 
 {
 public:
-    using clock = std::chrono::high_resolution_clock;
-
-    Timer() : m_prev(clock::now()) {}
-
-    double Tick() 
+    Timer() 
     { 
-        // returns delta seconds
-        auto now = clock::now();
-        std::chrono::duration<double> d = now - m_prev;
-        m_prev = now;
-        m_time += d.count();
-        return d.count();
+        Reset(); 
     }
 
-    double Time() const 
+    double Tick() 
+    {
+        using namespace std::chrono;
+        auto now = clock::now();
+        double dt = duration<double>(now - last_).count();
+        last_ = now;
+        return dt;
+    }
+
+    // Reset baseline to now
+    void Reset() 
     { 
-        return m_time; 
+        last_ = clock::now(); 
+    }
+
+    double Elapsed() const 
+    {
+        using namespace std::chrono;
+        return duration<double>(clock::now() - last_).count();
     }
 
 private:
-    clock::time_point m_prev;
-    double m_time = 0.0;
+    using clock = std::chrono::high_resolution_clock;
+    clock::time_point last_;
 };

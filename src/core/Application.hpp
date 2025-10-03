@@ -1,8 +1,8 @@
 #pragma once
 #include "core/Window.hpp"
 #include "core/Timer.hpp"
-#include <memory>
 
+#include <memory>
 
 class Application 
 {
@@ -14,7 +14,6 @@ public:
     int Run();
 
 protected:
-    // Hooks for your app/game logic — override in derived class later if needed
     virtual void OnUpdate(double /*dt*/) {}
     virtual void OnRender() {}
     virtual void OnResize(int /*w*/, int /*h*/) {}
