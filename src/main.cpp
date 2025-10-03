@@ -42,7 +42,7 @@ int main()
     props.title = "ModelViewer";
     props.width = 1280; 
     props.height = 720;
-    props.vsync = true;
+    props.vsync = false;
 
     auto window = std::make_unique<GlfwWindow>(props);
     MyApp app(std::move(window));

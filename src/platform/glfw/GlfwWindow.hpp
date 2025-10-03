@@ -1,8 +1,10 @@
 #pragma once
 #include "core/Window.hpp"
-#include <GLFW/glfw3.h>
-#include <string>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <string>
 
 class GlfwWindow final : public IWindow 
 {
