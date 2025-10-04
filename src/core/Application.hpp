@@ -14,7 +14,6 @@ public:
     explicit Application(std::unique_ptr<IWindow> window);
     virtual ~Application() = default;
 
-
     int Run();
 
 protected:

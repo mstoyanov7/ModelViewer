@@ -42,11 +42,13 @@ target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/external/glad/include
 add_executable(model_viewer
   src/main.cpp
   src/core/Application.cpp
+  src/core/Camera.cpp
+  src/core/OrbitCamera.cpp
+  src/core/Input.cpp
   src/platform/glfw/GlfwWindow.cpp
   src/gfx/Shader.cpp
   src/scenes/CubeScene.cpp
   src/app/ModelViewerApp.cpp
-  src/core/Camera.cpp
 )
 
 target_include_directories(model_viewer PRIVATE

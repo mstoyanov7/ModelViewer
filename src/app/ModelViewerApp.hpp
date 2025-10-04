@@ -3,6 +3,8 @@
 #include "core/Application.hpp"
 #include "gfx/Renderer.hpp"
 #include "core/Camera.hpp"
+#include "core/OrbitCamera.hpp"
+#include "core/Input.hpp"
 #include "scenes/CubeScene.hpp"
 
 #include <glm/gtc/constants.hpp>
@@ -27,10 +29,10 @@ protected:
 
 private:
     void lazyInitIfNeeded();
+    void handleCameraInput(float dt);
 
     std::unique_ptr<CubeScene> m_Scene;
-    std::unique_ptr<Camera> m_Camera;
-    double m_Accum = 0.0;
-    int m_Frames = 0;
-    bool m_IsSceneReady = false;
+    std::unique_ptr<OrbitCamera> m_Camera;
+    double accum_ = 0.0;
+    int    frames_ = 0;
 };

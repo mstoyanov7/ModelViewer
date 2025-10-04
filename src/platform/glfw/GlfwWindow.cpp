@@ -1,4 +1,5 @@
 #include "platform/glfw/GlfwWindow.hpp"
+#include "core/Input.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -39,6 +40,35 @@ GlfwWindow::GlfwWindow(const WindowProps& props)
     SetVSync(props.vsync);
 
     glfwSetWindowUserPointer(m_Handle, this);
+
+    // keyboard
+    glfwSetKeyCallback(m_Handle, [](GLFWwindow* win, int key, int sc, int action, int mods)
+    {
+        (void)win; (void)sc; (void)mods;
+        if (action == GLFW_PRESS)   Input::SetKeyState(key, true);
+        if (action == GLFW_RELEASE) Input::SetKeyState(key, false);
+    });
+
+    // mouse buttons
+    glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* win, int button, int action, int mods)
+    {
+        (void)win; (void)mods;
+        if (action == GLFW_PRESS)   Input::SetMouseButton(button, true);
+        if (action == GLFW_RELEASE) Input::SetMouseButton(button, false);
+    });
+
+    // cursor position
+    glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* win, double x, double y)
+    {
+        (void)win; Input::SetMousePos(x, y);
+    });
+
+    // scroll
+    glfwSetScrollCallback(m_Handle, [](GLFWwindow* win, double dx, double dy)
+    {
+        (void)win; Input::AddScroll(dx, dy);
+    });
+
     glfwSetFramebufferSizeCallback(m_Handle, &GlfwWindow::FramebufferSizeCallback);
     glfwGetFramebufferSize(m_Handle, &m_FBWidth, &m_FBHeight);
 }
