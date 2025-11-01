@@ -63,6 +63,7 @@ add_executable(model_viewer
   src/gfx/Shader.cpp
   src/gfx/Renderer.cpp
   src/gfx/GridAxes.cpp
+  src/gfx/TextOverlay.cpp
   src/gfx/Model.cpp
 
   src/scenes/CubeScene.cpp

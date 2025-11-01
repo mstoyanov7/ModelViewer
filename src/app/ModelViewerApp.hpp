@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 
 #include <memory>
+#include "gfx/TextOverlay.hpp"
 
 class ModelViewerApp : public Application 
 {
@@ -46,4 +47,7 @@ private:
     bool cull_ = false;
     bool lighting_ = true;
     bool showModel_ = false;
+    bool showHelp_ = true;
+
+    TextOverlay overlay_;
 };

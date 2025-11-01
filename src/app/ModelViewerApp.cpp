@@ -15,6 +15,8 @@ void ModelViewerApp::lazyInitIfNeeded()
     grid_ = std::make_unique<GridAxes>(); 
     grid_->init(20, 1.0f);
 
+    overlay_.init();
+
     scene_ = std::make_unique<CubeScene>(); 
     scene_->init();
 
@@ -161,6 +163,12 @@ void ModelViewerApp::handleToggles()
         }
     }
     rPrev = rNow;
+
+    // H = help toggle
+    static bool hPrev = false;
+    bool hNow = Input::IsKeyPressed(/*GLFW_KEY_H*/ 72);
+    if (hNow && !hPrev) { showHelp_ = !showHelp_; }
+    hPrev = hNow;
 }
 
 void ModelViewerApp::OnUpdate(double dt) 
@@ -215,6 +223,13 @@ void ModelViewerApp::OnRender()
         {
             scene_->render(*camera_);
         }
+    }
+
+    // Help overlay
+    if (showHelp_)
+    {
+        int fbw=0, fbh=0; m_Window->GetFramebufferSize(fbw, fbh);
+        overlay_.renderHelp(fbw, fbh, showModel_);
     }
 }
 
