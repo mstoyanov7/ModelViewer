@@ -4,7 +4,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <tiny_obj_loader.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <limits>
 #include <cctype>
@@ -43,148 +42,6 @@ void Model::shutdown()
     draws_.clear();
 }
 
-bool Model::loadOBJ(const std::string& path) 
-{
-    shutdown();
-    err_.clear();
-
-    tinyobj::ObjReaderConfig cfg;
-    cfg.triangulate = true;
-    cfg.vertex_color = true; // if present
-
-    tinyobj::ObjReader reader;
-    if (!reader.ParseFromFile(path, cfg)) 
-    {
-        err_ = reader.Error().empty() ? "Failed to read .obj" : reader.Error();
-        return false;
-    }
-    if (!reader.Warning().empty()) 
-    {
-        
-    }
-
-    const auto& attrib = reader.GetAttrib();
-    const auto& shapes = reader.GetShapes();
-
-    std::vector<Vertex> verts;
-    verts.reserve(50000);
-
-    // init AABB
-    glm::vec3 bmin{ std::numeric_limits<float>::max() };
-    glm::vec3 bmax{ std::numeric_limits<float>::lowest() };
-
-    for (const auto& sh : shapes) 
-    {
-        size_t index_offset = 0;
-        for (size_t f = 0; f < sh.mesh.num_face_vertices.size(); f++) 
-        {
-            const int fv = sh.mesh.num_face_vertices[f]; // should be 3 due to triangulate
-            if (fv != 3) 
-            { 
-                index_offset += fv; 
-                continue; 
-            }
-
-            glm::vec3 pos[3]; glm::vec3 nrm[3]; glm::vec3 col[3]; glm::vec2 uv[3];
-            bool hasN[3] = {false, false, false};
-            bool hasC[3] = {false, false, false};
-            bool hasUV[3] = {false, false, false};
-
-            for (int v = 0; v < 3; v++) 
-            {
-                tinyobj::index_t idx = sh.mesh.indices[index_offset + v];
-
-                pos[v].x = attrib.vertices[3 * idx.vertex_index + 0];
-                pos[v].y = attrib.vertices[3 * idx.vertex_index + 1];
-                pos[v].z = attrib.vertices[3 * idx.vertex_index + 2];
-
-                if (idx.normal_index >= 0) 
-                {
-                    hasN[v] = true;
-                    nrm[v].x = attrib.normals[3 * idx.normal_index + 0];
-                    nrm[v].y = attrib.normals[3 * idx.normal_index + 1];
-                    nrm[v].z = attrib.normals[3 * idx.normal_index + 2];
-                }
-
-                if (!attrib.colors.empty() && idx.vertex_index >= 0) 
-                {
-                    hasC[v] = true;
-                    col[v].r = attrib.colors[3 * idx.vertex_index + 0];
-                    col[v].g = attrib.colors[3 * idx.vertex_index + 1];
-                    col[v].b = attrib.colors[3 * idx.vertex_index + 2];
-                } 
-                else 
-                {
-                    col[v] = glm::vec3(0.75f); // default gray
-                }
-
-                if (idx.texcoord_index >= 0 && !attrib.texcoords.empty())
-                {
-                    hasUV[v] = true;
-                    uv[v].x = attrib.texcoords[2 * idx.texcoord_index + 0];
-                    uv[v].y = attrib.texcoords[2 * idx.texcoord_index + 1];
-                }
-                else
-                {
-                    uv[v] = glm::vec2(0.0f);
-                }
-            }
-
-            // if any normal missing → compute a flat face normal
-            if (!(hasN[0] && hasN[1] && hasN[2])) 
-            {
-                glm::vec3 fn; computeFlatNormal(pos[0], pos[1], pos[2], fn);
-                nrm[0] = nrm[1] = nrm[2] = fn;
-            }
-
-            // append 3 vertices
-            for (int v = 0; v < 3; ++v) 
-            {
-                verts.push_back({pos[v], nrm[v], col[v], uv[v]});
-                // expand bounds
-                bmin.x = std::min(bmin.x, pos[v].x); bmax.x = std::max(bmax.x, pos[v].x);
-                bmin.y = std::min(bmin.y, pos[v].y); bmax.y = std::max(bmax.y, pos[v].y);
-                bmin.z = std::min(bmin.z, pos[v].z); bmax.z = std::max(bmax.z, pos[v].z);
-            }
-
-            index_offset += fv;
-        }
-    }
-
-    if (verts.empty()) 
-    { 
-        err_ = "No vertices parsed from OBJ."; 
-        return false; 
-    }
-
-    // upload to GPU
-    glGenVertexArrays(1, &vao_);
-    glGenBuffers(1, &vbo_);
-    glBindVertexArray(vao_);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(Vertex), verts.data(), GL_STATIC_DRAW);
-
-    const GLsizei stride = sizeof(Vertex);
-    glEnableVertexAttribArray(0); // pos
-    glVertexAttribPointer(0, 3, GL_FLOAT,GL_FALSE, stride, (void*)offsetof(Vertex, pos));
-    glEnableVertexAttribArray(1); // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, nrm));
-    glEnableVertexAttribArray(2); // color
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, col));
-    glEnableVertexAttribArray(3); // uv
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, uv));
-    glBindVertexArray(0);
-
-    vertexCount_ = static_cast<int>(verts.size());
-    bmin_ = bmin; 
-    bmax_ = bmax;
-
-    // Single draw covering all vertices; OBJ materials/textures not yet bound
-    draws_.clear();
-    draws_.push_back({0, vertexCount_, 0, false, glm::vec4(1.0f)});
-
-    return true;
-}
 
 static std::string toLowerExt(const std::string& path)
 {
@@ -198,11 +55,9 @@ static std::string toLowerExt(const std::string& path)
 bool Model::load(const std::string& path)
 {
     const std::string ext = toLowerExt(path);
-    if (ext == ".obj")
-        return loadOBJ(path);
     if (ext == ".gltf" || ext == ".glb")
         return loadGLTF(path);
-    err_ = "Unsupported file extension: " + ext;
+    err_ = "Unsupported file extension: " + ext + "; only .gltf/.glb supported.";
     return false;
 }
 

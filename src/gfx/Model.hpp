@@ -15,13 +15,10 @@ public:
     Model() = default;
     ~Model();
 
-    // Load an .obj file; returns false on error (see lastError()).
-    bool loadOBJ(const std::string& path);
-
     // Load a .gltf or .glb file (geometry only; colors if present). Returns false on error.
     bool loadGLTF(const std::string& path);
 
-    // Auto-detect by file extension: .obj, .gltf, .glb
+    // Auto-detect by file extension: .gltf, .glb
     bool load(const std::string& path);
 
     // Draw with Phong shader (provided by caller or owned here)

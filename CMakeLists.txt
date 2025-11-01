@@ -34,13 +34,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-# tinyobjloader (OBJ)
-FetchContent_Declare(
-  tinyobjloader
-  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-  GIT_TAG v2.0-rc1
-)
-FetchContent_MakeAvailable(tinyobjloader)
 
 find_package(OpenGL REQUIRED)
 
@@ -92,7 +85,6 @@ target_link_libraries(model_viewer PRIVATE
   ${GLFW_TARGET}
   OpenGL::GL
   glm
-  tinyobjloader
 )
 
 if (MSVC)
