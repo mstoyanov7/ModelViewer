@@ -1,62 +1,5 @@
 #include "scenes/CubeScene.hpp"
-
-// Vertex shader: positions, normals, colors; Phong in fragment
-static const char* kVert = R"(#version 330 core
-layout(location=0) in vec3 aPos;
-layout(location=1) in vec3 aNormal;
-layout(location=2) in vec3 aCol;
-
-out vec3 vCol;
-out vec3 vNormal;
-out vec3 vWorldPos;
-
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProj;
-uniform mat3 uNormalMat;
-
-void main(){
-    vec4 worldPos = uModel * vec4(aPos,1.0);
-    vWorldPos = worldPos.xyz;
-    vNormal   = normalize(uNormalMat * aNormal);
-    vCol      = aCol;
-    gl_Position = uProj * uView * worldPos;
-})";
-
-static const char* kFrag = R"(#version 330 core
-in vec3 vCol;
-in vec3 vNormal;
-in vec3 vWorldPos;
-
-out vec4 FragColor;
-
-uniform vec3 uLightDir;    // normalized, world space (direction *towards* surface)
-uniform vec3 uViewPos;     // camera position, world space
-uniform bool uUseLighting;
-
-void main(){
-    vec3 baseColor = vCol;
-
-    if(!uUseLighting){
-        FragColor = vec4(baseColor, 1.0);
-        return;
-    }
-
-    // Phong lighting
-    vec3 N = normalize(vNormal);
-    vec3 L = normalize(uLightDir);
-    vec3 V = normalize(uViewPos - vWorldPos);
-    vec3 R = reflect(-L, N);
-
-    float diff = max(dot(N, L), 0.0);
-    float spec = pow(max(dot(R, V), 0.0), 32.0);
-
-    vec3 ambient  = 0.12 * baseColor;
-    vec3 diffuse  = 0.88 * diff * baseColor;
-    vec3 specular = 0.25 * spec * vec3(1.0);
-
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
-})";
+#include "gfx/Shader.hpp"
 
 CubeScene::~CubeScene() 
 { 
@@ -137,7 +80,7 @@ void CubeScene::init()
 
     glBindVertexArray(0);
 
-    shader_ = std::make_unique<Shader>(kVert, kFrag);
+    shader_ = Shader::FromFiles("assets/shaders/phong.vert", "assets/shaders/phong.frag");
     initialized_ = true;
 }
 

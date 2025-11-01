@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <memory>
 
 using GLuint = unsigned int;
 using GLenum = unsigned int;
@@ -19,9 +20,12 @@ public:
     void use() const;
     GLuint id() const { return prog_; }
 
-    GLint  loc(const char* name) const;
-    void   setMat4(const char* name, const float* m16) const;
-    void   setVec3(const char* name, float x, float y, float z) const;
+    GLint loc(const char* name) const;
+    void  setMat4(const char* name, const float* m16) const;
+    void  setVec3(const char* name, float x, float y, float z) const;
+
+    // Load shader sources from files on disk located at the given paths.
+    static std::unique_ptr<Shader> FromFiles(const char* vertexPath, const char* fragmentPath);
 
 private:
     GLuint prog_ = 0;

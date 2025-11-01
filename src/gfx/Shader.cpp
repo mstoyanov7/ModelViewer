@@ -4,10 +4,13 @@
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 Shader::Shader(const char* vertSrc, const char* fragSrc) 
 {
-    GLuint vs = compile(GL_VERTEX_SHADER,   vertSrc);
+    GLuint vs = compile(GL_VERTEX_SHADER, vertSrc);
     GLuint fs = compile(GL_FRAGMENT_SHADER, fragSrc);
 
     prog_ = glCreateProgram();
@@ -33,6 +36,24 @@ Shader::Shader(const char* vertSrc, const char* fragSrc)
 Shader::~Shader() 
 {
     if (prog_) glDeleteProgram(prog_);
+}
+
+static std::string readTextFile(const char* path)
+{
+    std::ifstream in(path, std::ios::in | std::ios::binary);
+    if (!in)
+        throw std::runtime_error(std::string("Failed to open file: ") + path);
+
+    std::ostringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+}
+
+std::unique_ptr<Shader> Shader::FromFiles(const char* vertexPath, const char* fragmentPath)
+{
+    const std::string vs = readTextFile(vertexPath);
+    const std::string fs = readTextFile(fragmentPath);
+    return std::unique_ptr<Shader>(new Shader(vs.c_str(), fs.c_str()));
 }
 
 Shader::Shader(Shader&& o) noexcept 

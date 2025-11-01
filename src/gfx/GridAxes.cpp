@@ -2,20 +2,6 @@
 #include "gfx/Shader.hpp"
 #include <vector>
 
-static const char* kLineVS = R"(#version 330 core
-layout(location=0) in vec3 aPos;
-layout(location=1) in vec3 aCol;
-out vec3 vCol;
-uniform mat4 uView, uProj;
-void main(){
-  vCol = aCol;
-  gl_Position = uProj * uView * vec4(aPos,1.0);
-})";
-
-static const char* kLineFS = R"(#version 330 core
-in vec3 vCol; out vec4 FragColor;
-void main(){ FragColor = vec4(vCol,1.0); })";
-
 GridAxes::~GridAxes()
 { 
     shutdown(); 
@@ -75,7 +61,7 @@ void GridAxes::init(int halfLines, float spacing)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
-    shader_ = std::make_unique<Shader>(kLineVS, kLineFS);
+    shader_ = Shader::FromFiles("assets/shaders/line.vert", "assets/shaders/line.frag");
 }
 
 void GridAxes::render(const Camera& cam) 
