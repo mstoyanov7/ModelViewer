@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #include "gfx/Shader.hpp"
 #include "core/Camera.hpp"
@@ -36,7 +37,13 @@ public:
 
 private:
     struct Vertex { glm::vec3 pos; glm::vec3 nrm; glm::vec3 col; glm::vec2 uv; };
-    struct Draw { int first = 0; int count = 0; unsigned int tex = 0; };
+    struct Draw {
+        int first = 0;
+        int count = 0;
+        unsigned int tex = 0;
+        bool blend = false;              // glTF material alphaMode == BLEND
+        glm::vec4 baseColorFactor{1.0f}; // glTF baseColorFactor
+    };
 
     GLuint vao_ = 0, vbo_ = 0;
     int vertexCount_ = 0; // non-indexed triangles

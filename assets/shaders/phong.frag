@@ -11,15 +11,17 @@ uniform vec3 uViewPos;     // camera position, world space
 uniform bool uUseLighting;
 uniform bool uHasBaseColorTex;
 uniform sampler2D uBaseColorTex;
+uniform vec4 uBaseColorFactor; // glTF baseColorFactor (rgb multiplicative, a used for blending)
 
 void main(){
-    vec3 baseColor = vCol;
+    vec4 base = vec4(vCol, 1.0);
     if (uHasBaseColorTex) {
-        baseColor = texture(uBaseColorTex, vUV).rgb;
+        base = texture(uBaseColorTex, vUV);
     }
+    base *= uBaseColorFactor;
 
     if(!uUseLighting){
-        FragColor = vec4(baseColor, 1.0);
+        FragColor = base;
         return;
     }
 
@@ -32,9 +34,10 @@ void main(){
     float diff = max(dot(N, L), 0.0);
     float spec = pow(max(dot(R, V), 0.0), 32.0);
 
+    vec3 baseColor = base.rgb;
     vec3 ambient  = 0.12 * baseColor;
     vec3 diffuse  = 0.88 * diff * baseColor;
     vec3 specular = 0.25 * spec * vec3(1.0);
 
-    FragColor = vec4(ambient + diffuse + specular, 1.0);
+    FragColor = vec4(ambient + diffuse + specular, base.a);
 }

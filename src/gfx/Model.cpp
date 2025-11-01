@@ -181,7 +181,7 @@ bool Model::loadOBJ(const std::string& path)
 
     // Single draw covering all vertices; OBJ materials/textures not yet bound
     draws_.clear();
-    draws_.push_back({0, vertexCount_, 0});
+    draws_.push_back({0, vertexCount_, 0, false, glm::vec4(1.0f)});
 
     return true;
 }
@@ -457,6 +457,8 @@ bool Model::loadGLTF(const std::string& path)
         int uvSet = 0; // which TEXCOORD_n to use
         glm::vec2 uvScale(1.0f, 1.0f), uvOffset(0.0f, 0.0f);
         float uvRotate = 0.0f;
+        bool doBlend = false;
+        glm::vec4 baseColorFactor(1.0f);
         if (prim.material >= 0 && prim.material < (int)gltf.materials.size())
         {
             const tinygltf::Material& mat = gltf.materials[prim.material];
@@ -466,6 +468,14 @@ bool Model::loadGLTF(const std::string& path)
             auto itv = mat.values.find("baseColorTexture");
             if (tindex < 0 && itv != mat.values.end() && itv->second.TextureIndex() >= 0)
                 tindex = itv->second.TextureIndex();
+            // baseColorFactor
+            if (!mat.pbrMetallicRoughness.baseColorFactor.empty() && mat.pbrMetallicRoughness.baseColorFactor.size() >= 4)
+            {
+                const auto& f = mat.pbrMetallicRoughness.baseColorFactor;
+                baseColorFactor = glm::vec4((float)f[0], (float)f[1], (float)f[2], (float)f[3]);
+            }
+            // alpha mode
+            if (mat.alphaMode == "BLEND") doBlend = true;
             // texCoord set
             if (bct.texCoord >= 0) uvSet = bct.texCoord;
             // KHR_texture_transform
@@ -556,7 +566,7 @@ bool Model::loadGLTF(const std::string& path)
 
         int added = (int)verts.size() - vertStart;
         if (added > 0)
-            draws_.push_back({vertStart, added, gltex});
+            draws_.push_back({vertStart, added, gltex, doBlend, baseColorFactor});
     };
 
     // Iterate default scene nodes and gather all primitives
@@ -635,12 +645,17 @@ void Model::render(const Camera& cam, const glm::mat4& model, Shader& shader) co
     if (draws_.empty())
     {
         glUniform1i(shader.loc("uHasBaseColorTex"), 0);
+        glUniform4f(shader.loc("uBaseColorFactor"), 1.0f, 1.0f, 1.0f, 1.0f);
         glDrawArrays(GL_TRIANGLES, 0, vertexCount_);
     }
     else
     {
+        // Pass 1: opaque (no blending, depth writes on)
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
         for (const auto& d : draws_)
         {
+            if (d.blend) continue;
             if (d.tex)
             {
                 glActiveTexture(GL_TEXTURE0);
@@ -652,9 +667,35 @@ void Model::render(const Camera& cam, const glm::mat4& model, Shader& shader) co
             {
                 glUniform1i(shader.loc("uHasBaseColorTex"), 0);
             }
+            glUniform4f(shader.loc("uBaseColorFactor"), d.baseColorFactor.r, d.baseColorFactor.g, d.baseColorFactor.b, d.baseColorFactor.a);
             glDrawArrays(GL_TRIANGLES, d.first, d.count);
         }
+
+        // Pass 2: transparent (enable blending, depth writes off)
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        for (const auto& d : draws_)
+        {
+            if (!d.blend) continue;
+            if (d.tex)
+            {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, d.tex);
+                glUniform1i(shader.loc("uBaseColorTex"), 0);
+                glUniform1i(shader.loc("uHasBaseColorTex"), 1);
+            }
+            else
+            {
+                glUniform1i(shader.loc("uHasBaseColorTex"), 0);
+            }
+            glUniform4f(shader.loc("uBaseColorFactor"), d.baseColorFactor.r, d.baseColorFactor.g, d.baseColorFactor.b, d.baseColorFactor.a);
+            glDrawArrays(GL_TRIANGLES, d.first, d.count);
+        }
+        // Restore state
         glBindTexture(GL_TEXTURE_2D, 0);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
     }
     glBindVertexArray(0);
 }
