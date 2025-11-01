@@ -7,6 +7,7 @@
 #include "core/OrbitCamera.hpp"
 #include "core/Input.hpp"
 #include "scenes/CubeScene.hpp"
+#include "scenes/ModelScene.hpp"
 
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/matrix_transform.hpp> 
@@ -39,4 +40,7 @@ private:
     double accum_ = 0.0; int frames_ = 0;
     bool wireframe_ = false, cull_ = false;
     bool lighting_ = true;
+
+    std::unique_ptr<ModelScene> modelScene_;
+    bool showModel_ = false;
 };

@@ -34,6 +34,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
+# tinyobjloader (OBJ)
+FetchContent_Declare(
+  tinyobjloader
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+  GIT_TAG v2.0-rc1
+)
+FetchContent_MakeAvailable(tinyobjloader)
+
 find_package(OpenGL REQUIRED)
 
 add_library(glad external/glad/src/glad.c)
@@ -50,6 +58,8 @@ add_executable(model_viewer
   src/scenes/CubeScene.cpp
   src/app/ModelViewerApp.cpp
   src/gfx/GridAxes.cpp
+  src/gfx/Model.cpp
+  src/scenes/ModelScene.cpp
 )
 
 target_include_directories(model_viewer PRIVATE
@@ -67,6 +77,7 @@ target_link_libraries(model_viewer PRIVATE
   ${GLFW_TARGET}
   OpenGL::GL
   glm
+  tinyobjloader
 )
 
 if (MSVC)
@@ -74,3 +85,11 @@ if (MSVC)
 else()
   target_compile_options(model_viewer PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
+
+add_custom_command(TARGET model_viewer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:model_viewer>/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ASSETS_DIR}" "$<TARGET_FILE_DIR:model_viewer>/assets"
+    COMMENT "Copying assets to runtime folder"
+)

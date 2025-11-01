@@ -11,6 +11,19 @@ void ModelViewerApp::lazyInitIfNeeded() {
 
     grid_  = std::make_unique<GridAxes>(); grid_->init(20, 1.0f);
     scene_ = std::make_unique<CubeScene>(); scene_->init();
+
+    // Prepare ModelScene but don't activate until user toggles
+    if (!modelScene_) {
+        modelScene_ = std::make_unique<ModelScene>();
+        // Change path if different:
+        if (!modelScene_->init("assets/mercedes-benz-gls63.obj")) {
+            // optional: printf error, keep cube as fallback
+            printf("OBJ load error: %s\n", modelScene_->lastError().c_str());
+            modelScene_.reset();
+        } else {
+            modelScene_->setLighting(true);
+        }
+    }
 }
 
 void ModelViewerApp::handleCameraInput(float) {
@@ -60,6 +73,11 @@ void ModelViewerApp::handleToggles() {
         lighting_ = !lighting_;
         if (scene_) scene_->setLighting(lighting_);
     }
+    // M = toggle ModelScene/CubeScene
+    static bool mPrev=false; bool mNow = Input::IsKeyPressed(/*GLFW_KEY_M*/ 77);
+    if (mNow && !mPrev) {
+        showModel_ = !showModel_;
+    }
     rPrev = rNow;
 }
 
@@ -83,9 +101,23 @@ void ModelViewerApp::OnUpdate(double dt) {
 }
 
 void ModelViewerApp::OnRender() {
-    Renderer::Clear(0.07f,0.08f,0.10f,1.0f);
+     Renderer::Clear(0.07f,0.08f,0.10f,1.0f);
     if (grid_   && camera_) grid_->render(*camera_);
-    if (scene_  && camera_) scene_->render(*camera_);
+
+    if (showModel_) 
+    {
+        if (modelScene_ && camera_) 
+        {
+            modelScene_->render(*camera_);
+        }
+    } 
+    else 
+    {
+        if (scene_ && camera_) 
+        {
+            scene_->render(*camera_);
+        }
+    }
 }
 
 void ModelViewerApp::OnResize(int w, int h) 
