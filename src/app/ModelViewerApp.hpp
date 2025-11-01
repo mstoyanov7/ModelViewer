@@ -38,4 +38,5 @@ private:
     std::unique_ptr<OrbitCamera> camera_;
     double accum_ = 0.0; int frames_ = 0;
     bool wireframe_ = false, cull_ = false;
+    bool lighting_ = true;
 };

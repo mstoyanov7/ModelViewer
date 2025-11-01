@@ -53,6 +53,12 @@ void ModelViewerApp::handleToggles() {
     static bool rPrev=false; bool rNow = Input::IsKeyPressed(/*GLFW_KEY_R*/ 82);
     if (rNow && !rPrev && camera_) {
         camera_->setTarget({0,0,0}); camera_->setRadius(4.0f); camera_->setYawPitch(0.7f, 0.5f);
+    } 
+    // L = lighting toggle
+    static bool lPrev=false; bool lNow = Input::IsKeyPressed(/*GLFW_KEY_L*/ 76);
+    if (lNow && !lPrev) {
+        lighting_ = !lighting_;
+        if (scene_) scene_->setLighting(lighting_);
     }
     rPrev = rNow;
 }
@@ -61,8 +67,12 @@ void ModelViewerApp::OnUpdate(double dt) {
     accum_ += dt; frames_++;
     if (accum_ >= 0.3) {
         char buf[128]; const double fps = frames_ / accum_;
-        snprintf(buf,sizeof(buf),"OpenGL — Cube (Orbit) | %.1f FPS  [%s%s]",
-                 fps, wireframe_?"WF ":"", cull_?"Cull":"");
+        snprintf(buf, sizeof(buf),
+            "OpenGL — Cube (Orbit) | %.1f FPS  [%s%s%s]",
+            fps,
+            wireframe_ ? "WF " : "",
+            cull_      ? "Cull " : "",
+            lighting_  ? "Light" : "NoLight");
         m_Window->SetTitle(buf); accum_ = 0.0; frames_ = 0;
     }
 
