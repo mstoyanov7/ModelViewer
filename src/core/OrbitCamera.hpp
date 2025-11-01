@@ -10,6 +10,8 @@ public:
 
     void addYawPitch(float dYaw, float dPitch) { yaw_ += dYaw; pitch_ += dPitch; clampPitch(); updateView(); }
     void addRadius(float d) { setRadius(radius_ + d); }
+    
+    void pan(float dx, float dy);
 
     const glm::vec3& target() const { return target_; }
     float yaw() const { return yaw_; }

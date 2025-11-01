@@ -1,90 +1,89 @@
 #include "app/ModelViewerApp.hpp"
 
-void ModelViewerApp::lazyInitIfNeeded() 
-{
-    if (m_Scene) return;
+void ModelViewerApp::lazyInitIfNeeded() {
+    if (scene_) return;
 
-    m_Camera = std::make_unique<OrbitCamera>();
-    m_Camera->setPerspective(glm::radians(60.0f), 1280.0f/720.0f, 0.1f, 100.0f);
-    m_Camera->setTarget({0,0,0});
-    m_Camera->setRadius(3.0f);
-    m_Camera->setYawPitch(0.6f, 0.6f);
+    Renderer::Init();
 
-    m_Scene = std::make_unique<CubeScene>();
-    m_Scene->init();
+    camera_ = std::make_unique<OrbitCamera>();
+    camera_->setPerspective(glm::radians(60.0f), 1280.0f/720.0f, 0.1f, 200.0f);
+    camera_->setTarget({0,0,0}); camera_->setRadius(4.0f); camera_->setYawPitch(0.7f, 0.5f);
 
-    glEnable(GL_DEPTH_TEST);
+    grid_  = std::make_unique<GridAxes>(); grid_->init(20, 1.0f);
+    scene_ = std::make_unique<CubeScene>(); scene_->init();
 }
 
-void ModelViewerApp::handleCameraInput(float dt) 
-{
-    (void)dt;
-    // Drag to orbit (right mouse button)
-    static bool dragging = false;
-    static double lastX = 0, lastY = 0;
-    double x, y; Input::GetMousePos(x, y);
+void ModelViewerApp::handleCameraInput(float) {
+    // Orbit drag = Right Mouse
+    static bool orbiting=false; static double ox=0, oy=0;
+    double x,y; Input::GetMousePos(x,y);
+    const bool rmb = Input::IsMousePressed(1); // GLFW_MOUSE_BUTT ON_RIGHT
+    if (rmb && !orbiting) { orbiting=true; ox=x; oy=y; }
+    if (!rmb && orbiting)  { orbiting=false; }
+    if (orbiting && camera_) {
+        float dx = float(x-ox), dy = float(y-oy); ox=x; oy=y;
+        camera_->addYawPitch(-dx*0.005f, -dy*0.005f);
+    }
 
-    const bool rmb = Input::IsMousePressed(/*GLFW_MOUSE_BUTTON_RIGHT*/ 1);
-    if (rmb && !dragging) { dragging = true; lastX = x; lastY = y; }
-    if (!rmb && dragging) { dragging = false; }
-
-    if (dragging && m_Camera) 
-    {
-        float dx = float(x - lastX);
-        float dy = float(y - lastY);
-        lastX = x; lastY = y;
-
-        // sensitivity
-        const float s = 0.005f;
-        m_Camera->addYawPitch(-dx * s, -dy * s);
+    // Pan drag = Middle Mouse
+    static bool panning=false; static double px=0, py=0;
+    const bool mmb = Input::IsMousePressed(2); // GLFW_MOUSE_BUTTON_MIDDLE
+    if (mmb && !panning) { panning=true; px=x; py=y; }
+    if (!mmb && panning)  { panning=false; }
+    if (panning && camera_) {
+        float dx = float(x-px), dy = float(y-py); px=x; py=y;
+        camera_->pan(dx, dy);
     }
 
     // Scroll to zoom
     double sx=0, sy=0; Input::ConsumeScroll(sx, sy);
-    if (m_Camera && (sx != 0.0 || sy != 0.0)) 
-    {
-        m_Camera->addRadius(float(-sy * 0.2f)); // wheel up → zoom in
-    }
+    if (camera_ && sy!=0.0) camera_->addRadius(float(-sy * 0.25f));
 }
 
-void ModelViewerApp::OnUpdate(double dt) 
-{
+void ModelViewerApp::handleToggles() {
+    // F = wireframe toggle
+    static bool fPrev=false; bool fNow = Input::IsKeyPressed(/*GLFW_KEY_F*/ 70);
+    if (fNow && !fPrev) { wireframe_ = !wireframe_; Renderer::SetWireframe(wireframe_); }
+    fPrev = fNow;
+    // C = culling toggle
+    static bool cPrev=false; bool cNow = Input::IsKeyPressed(/*GLFW_KEY_C*/ 67);
+    if (cNow && !cPrev) { cull_ = !cull_; Renderer::SetCull(cull_); }
+    cPrev = cNow;
+    // R = reset camera
+    static bool rPrev=false; bool rNow = Input::IsKeyPressed(/*GLFW_KEY_R*/ 82);
+    if (rNow && !rPrev && camera_) {
+        camera_->setTarget({0,0,0}); camera_->setRadius(4.0f); camera_->setYawPitch(0.7f, 0.5f);
+    }
+    rPrev = rNow;
+}
+
+void ModelViewerApp::OnUpdate(double dt) {
     accum_ += dt; frames_++;
-    if (accum_ >= 0.3) 
-    {
-        char buf[128];
-        const double fps = frames_ / accum_;
-        snprintf(buf, sizeof(buf), "OpenGL — Cube (Orbit) | %.1f FPS", fps);
-        m_Window->SetTitle(buf);
-        accum_ = 0.0; frames_ = 0;
+    if (accum_ >= 0.3) {
+        char buf[128]; const double fps = frames_ / accum_;
+        snprintf(buf,sizeof(buf),"OpenGL — Cube (Orbit) | %.1f FPS  [%s%s]",
+                 fps, wireframe_?"WF ":"", cull_?"Cull":"");
+        m_Window->SetTitle(buf); accum_ = 0.0; frames_ = 0;
     }
 
     lazyInitIfNeeded();
-    handleCameraInput(static_cast<float>(dt));
-
-    if (m_Scene)
-    {
-        m_Scene->update(static_cast<float>(dt));
-    } 
+    handleCameraInput((float)dt);
+    handleToggles();
+    if (scene_) scene_->update((float)dt);
 }
 
-void ModelViewerApp::OnRender() 
-{
-    glClearColor(0.07f, 0.08f, 0.10f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (m_Scene && m_Camera)
-    {
-        m_Scene->render(*m_Camera);
-    } 
+void ModelViewerApp::OnRender() {
+    Renderer::Clear(0.07f,0.08f,0.10f,1.0f);
+    if (grid_   && camera_) grid_->render(*camera_);
+    if (scene_  && camera_) scene_->render(*camera_);
 }
 
 void ModelViewerApp::OnResize(int w, int h) 
 {
     if (w <= 0 || h <= 0) return;
     glViewport(0, 0, w, h);
-    if (m_Camera) 
+    if (camera_) 
     {
-        m_Camera->setAspect(float(w) / float(h));
+        camera_->setAspect(float(w) / float(h));
     } 
 }

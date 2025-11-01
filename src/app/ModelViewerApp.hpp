@@ -2,6 +2,7 @@
 
 #include "core/Application.hpp"
 #include "gfx/Renderer.hpp"
+#include "gfx/GridAxes.hpp"
 #include "core/Camera.hpp"
 #include "core/OrbitCamera.hpp"
 #include "core/Input.hpp"
@@ -30,9 +31,11 @@ protected:
 private:
     void lazyInitIfNeeded();
     void handleCameraInput(float dt);
+    void handleToggles();
 
-    std::unique_ptr<CubeScene> m_Scene;
-    std::unique_ptr<OrbitCamera> m_Camera;
-    double accum_ = 0.0;
-    int    frames_ = 0;
+    std::unique_ptr<CubeScene>   scene_;
+    std::unique_ptr<GridAxes>    grid_;
+    std::unique_ptr<OrbitCamera> camera_;
+    double accum_ = 0.0; int frames_ = 0;
+    bool wireframe_ = false, cull_ = false;
 };

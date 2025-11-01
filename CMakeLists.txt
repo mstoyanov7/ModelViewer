@@ -49,6 +49,7 @@ add_executable(model_viewer
   src/gfx/Shader.cpp
   src/scenes/CubeScene.cpp
   src/app/ModelViewerApp.cpp
+  src/gfx/GridAxes.cpp
 )
 
 target_include_directories(model_viewer PRIVATE
