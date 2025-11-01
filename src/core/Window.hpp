@@ -1,16 +1,14 @@
 #pragma once
 #include <string>
 
-struct WindowProps 
-{
+struct WindowProps {
     int width = 1280;
     int height = 720;
     std::string title = "ModelViewer";
     bool vsync = true;
 };
 
-class IWindow 
-{
+class IWindow {
 public:
     virtual ~IWindow() = default;
 

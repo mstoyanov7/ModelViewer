@@ -1,8 +1,7 @@
 #pragma once
 #include "core/Camera.hpp"
 
-class OrbitCamera : public Camera 
-{
+class OrbitCamera : public Camera {
 public:
     void setTarget(const glm::vec3& target) { target_ = target; }
     void setYawPitch(float yaw, float pitch) { yaw_ = yaw; pitch_ = pitch; clampPitch(); updateView(); }
@@ -10,7 +9,7 @@ public:
 
     void addYawPitch(float dYaw, float dPitch) { yaw_ += dYaw; pitch_ += dPitch; clampPitch(); updateView(); }
     void addRadius(float d) { setRadius(radius_ + d); }
-    
+
     void pan(float dx, float dy);
 
     const glm::vec3& target() const { return target_; }

@@ -32,7 +32,7 @@ private:
     struct Vertex { glm::vec3 pos; glm::vec3 nrm; glm::vec3 col; };
 
     GLuint vao_ = 0, vbo_ = 0;
-    int    vertexCount_ = 0; // non-indexed triangles
+    int vertexCount_ = 0; // non-indexed triangles
     glm::vec3 bmin_{0}, bmax_{0}; // AABB in object space
     std::string err_;
 

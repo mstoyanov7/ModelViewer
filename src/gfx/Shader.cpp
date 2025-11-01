@@ -86,7 +86,7 @@ void Shader::setMat4(const char* name, const float* m16) const
     glUniformMatrix4fv(loc(name), 1, GL_FALSE, m16); 
 }
 
-void Shader::setVec3(const char* name, float x,float y,float z) const 
+void Shader::setVec3(const char* name, float x, float y, float z) const 
 { 
-    glUniform3f(loc(name), x,y,z); 
+    glUniform3f(loc(name), x, y, z); 
 }

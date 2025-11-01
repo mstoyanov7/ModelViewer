@@ -58,15 +58,19 @@ void main(){
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 })";
 
-CubeScene::~CubeScene() { shutdown(); }
+CubeScene::~CubeScene() 
+{ 
+    shutdown(); 
+}
 
-void CubeScene::init() {
+void CubeScene::init() 
+{
     if (initialized_) return;
 
     // Non-indexed cube with per-face normals (6 faces * 2 triangles * 3 verts = 36)
     // Each vertex: position (3), normal (3), color (3) -> stride = 9 floats
     const float n = 0.5f;
-    struct V { float px,py,pz, nx,ny,nz, r,g,b; };
+    struct V { float px, py, pz, nx, ny, nz, r, g, b; };
 
     // helper to push a face (p0,p1,p2,p3 CCW), with a shared face normal & color
     auto pushFace = [](std::vector<V>& out,
@@ -74,12 +78,12 @@ void CubeScene::init() {
                        glm::vec3 faceNormal, glm::vec3 col)
     {
         // tri1: p0 p1 p2; tri2: p2 p3 p0
-        out.push_back({p0.x,p0.y,p0.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
-        out.push_back({p1.x,p1.y,p1.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
-        out.push_back({p2.x,p2.y,p2.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
-        out.push_back({p2.x,p2.y,p2.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
-        out.push_back({p3.x,p3.y,p3.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
-        out.push_back({p0.x,p0.y,p0.z, faceNormal.x,faceNormal.y,faceNormal.z, col.r,col.g,col.b});
+        out.push_back({p0.x, p0.y, p0.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
+        out.push_back({p1.x, p1.y, p1.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
+        out.push_back({p2.x, p2.y, p2.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
+        out.push_back({p2.x, p2.y, p2.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
+        out.push_back({p3.x, p3.y, p3.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
+        out.push_back({p0.x, p0.y, p0.z, faceNormal.x, faceNormal.y, faceNormal.z, col.r, col.g, col.b});
     };
 
     std::vector<V> verts; verts.reserve(36);
@@ -95,33 +99,33 @@ void CubeScene::init() {
     glm::vec3 p011 = {-n, n, n};
 
     // Colors per face
-    glm::vec3 Cx  = {1,0.2f,0.2f};
-    glm::vec3 Cnx = {0.9f,0.4f,0.4f};
-    glm::vec3 Cy  = {0.2f,1,0.2f};
-    glm::vec3 Cny = {0.4f,0.9f,0.4f};
-    glm::vec3 Cz  = {0.2f,0.5f,1};
-    glm::vec3 Cnz = {0.4f,0.7f,0.9f};
+    glm::vec3 Cx  = {1, 0.2f, 0.2f};
+    glm::vec3 Cnx = {0.9f, 0.4f, 0.4f};
+    glm::vec3 Cy  = {0.2f, 1, 0.2f};
+    glm::vec3 Cny = {0.4f, 0.9f, 0.4f};
+    glm::vec3 Cz  = {0.2f, 0.5f, 1};
+    glm::vec3 Cnz = {0.4f, 0.7f, 0.9f};
 
     // +X face (normal +X)
-    pushFace(verts, p100,p110,p111,p101, {1,0,0}, Cx);
+    pushFace(verts, p100, p110, p111, p101, {1, 0, 0}, Cx);
     // -X face
-    pushFace(verts, p010,p000,p001,p011, {-1,0,0}, Cnx);
+    pushFace(verts, p010,p000,p001,p011, {-1, 0, 0}, Cnx);
     // +Y face
-    pushFace(verts, p110,p010,p011,p111, {0,1,0}, Cy);
+    pushFace(verts, p110, p010, p011, p111, {0, 1, 0}, Cy);
     // -Y face
-    pushFace(verts, p000,p100,p101,p001, {0,-1,0}, Cny);
+    pushFace(verts, p000, p100, p101, p001, {0, -1, 0}, Cny);
     // +Z face
-    pushFace(verts, p101,p111,p011,p001, {0,0,1}, Cz);
+    pushFace(verts, p101, p111, p011, p001, {0, 0, 1}, Cz);
     // -Z face
-    pushFace(verts, p000,p010,p110,p100, {0,0,-1}, Cnz);
+    pushFace(verts, p000, p010, p110, p100, {0, 0,-1}, Cnz);
 
     vertexCount_ = static_cast<int>(verts.size());
 
-    glGenVertexArrays(1,&vao_);
-    glGenBuffers(1,&vbo_);
+    glGenVertexArrays(1, &vao_);
+    glGenBuffers(1, &vbo_);
     glBindVertexArray(vao_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, verts.size()*sizeof(V), verts.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() *sizeof(V), verts.data(), GL_STATIC_DRAW);
 
     const GLsizei stride = sizeof(V);
     glEnableVertexAttribArray(0); // pos
@@ -137,12 +141,14 @@ void CubeScene::init() {
     initialized_ = true;
 }
 
-void CubeScene::update(float dt) {
+void CubeScene::update(float dt) 
+{
     angle_ += dt * 0.8f; // rad/s
-    model_ = glm::rotate(glm::mat4(1.0f), angle_, glm::vec3(0.3f,1.0f,0.2f));
+    model_ = glm::rotate(glm::mat4(1.0f), angle_, glm::vec3(0.3f, 1.0f, 0.2f));
 }
 
-void CubeScene::render(const Camera& cam) {
+void CubeScene::render(const Camera& cam) 
+{
     if (!initialized_) return;
     shader_->use();
 
@@ -155,8 +161,8 @@ void CubeScene::render(const Camera& cam) {
 
     // lighting uniforms
     // Light coming from (−1,+1,−0.6) direction toward the origin
-    const float len = sqrtf(1.f*1.f + 1.f*1.f + 0.6f*0.6f);
-    const float lx = -1.0f/len, ly = 1.0f/len, lz = -0.6f/len;
+    const float len = sqrtf(1.f * 1.f + 1.f * 1.f + 0.6f * 0.6f);
+    const float lx = -1.0f / len, ly = 1.0f / len, lz = -0.6f / len;
     glUniform3f(shader_->loc("uLightDir"), lx, ly, lz);
 
     // camera position: derive from inverse of view if you don't store it
@@ -174,9 +180,18 @@ void CubeScene::render(const Camera& cam) {
     glBindVertexArray(0);
 }
 
-void CubeScene::shutdown() {
-    if (vbo_) { glDeleteBuffers(1,&vbo_); vbo_=0; }
-    if (vao_) { glDeleteVertexArrays(1,&vao_); vao_=0; }
+void CubeScene::shutdown() 
+{
+    if (vbo_) 
+    { 
+        glDeleteBuffers(1, &vbo_); 
+        vbo_ = 0; 
+    }
+    if (vao_) 
+    { 
+        glDeleteVertexArrays(1, &vao_); 
+        vao_ = 0; 
+    }
     shader_.reset();
     initialized_ = false;
 }

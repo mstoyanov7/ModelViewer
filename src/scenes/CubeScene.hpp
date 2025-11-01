@@ -28,10 +28,10 @@ public:
     void setLighting(bool on) { lighting_ = on; }
 
 private:
-    bool   initialized_ = false;
-    bool   lighting_    = true;       // <- toggle via 'L'
+    bool initialized_ = false;
+    bool lighting_    = true;       // <- toggle via 'L'
     GLuint vao_ = 0, vbo_ = 0;
-    int    vertexCount_ = 0;          // non-indexed draw (36 verts)
+    int vertexCount_ = 0;          // non-indexed draw (36 verts)
     std::unique_ptr<Shader> shader_;
     glm::mat4 model_{1.0f};
     float angle_ = 0.0f;

@@ -1,8 +1,7 @@
 #pragma once
 #include <unordered_map>
 
-class Input 
-{
+class Input {
 public:
     // keyboard
     static void SetKeyState(int key, bool pressed);

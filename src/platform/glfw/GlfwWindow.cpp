@@ -47,16 +47,28 @@ GlfwWindow::GlfwWindow(const WindowProps& props)
     glfwSetKeyCallback(m_Handle, [](GLFWwindow* win, int key, int sc, int action, int mods)
     {
         (void)win; (void)sc; (void)mods;
-        if (action == GLFW_PRESS)   Input::SetKeyState(key, true);
-        if (action == GLFW_RELEASE) Input::SetKeyState(key, false);
+        if (action == GLFW_PRESS)
+        {
+            Input::SetKeyState(key, true);
+        }   
+        if (action == GLFW_RELEASE) 
+        {
+            Input::SetKeyState(key, false);
+        }
     });
 
     // mouse buttons
     glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* win, int button, int action, int mods)
     {
         (void)win; (void)mods;
-        if (action == GLFW_PRESS)   Input::SetMouseButton(button, true);
-        if (action == GLFW_RELEASE) Input::SetMouseButton(button, false);
+        if (action == GLFW_PRESS)  
+        {
+            Input::SetMouseButton(button, true);
+        } 
+        if (action == GLFW_RELEASE) 
+        {
+            Input::SetMouseButton(button, false);
+        }
     });
 
     // cursor position
@@ -117,5 +129,6 @@ void GlfwWindow::SetVSync(bool enabled)
 void GlfwWindow::FramebufferSizeCallback(GLFWwindow* win, int w, int h) 
 {
     auto* self = static_cast<GlfwWindow*>(glfwGetWindowUserPointer(win));
-    self->m_FBWidth = w; self->m_FBHeight = h;
+    self->m_FBWidth = w; 
+    self->m_FBHeight = h;
 }

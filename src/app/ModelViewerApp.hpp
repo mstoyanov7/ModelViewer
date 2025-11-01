@@ -34,13 +34,16 @@ private:
     void handleCameraInput(float dt);
     void handleToggles();
 
-    std::unique_ptr<CubeScene>   scene_;
-    std::unique_ptr<GridAxes>    grid_;
+    std::unique_ptr<CubeScene> scene_;
+    std::unique_ptr<GridAxes> grid_;
     std::unique_ptr<OrbitCamera> camera_;
-    double accum_ = 0.0; int frames_ = 0;
-    bool wireframe_ = false, cull_ = false;
-    bool lighting_ = true;
-
     std::unique_ptr<ModelScene> modelScene_;
+
+    double accum_ = 0.0; 
+    int frames_ = 0;
+
+    bool wireframe_ = false;
+    bool cull_ = false;
+    bool lighting_ = true;
     bool showModel_ = false;
 };

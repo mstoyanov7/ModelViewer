@@ -8,8 +8,7 @@
 #include <memory>
 #include <cstdio>
 
-class Application 
-{
+class Application {
 public:
     explicit Application(std::unique_ptr<IWindow> window);
     virtual ~Application() = default;

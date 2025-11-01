@@ -1,8 +1,7 @@
 #pragma once
 #include <chrono>
 
-class Timer 
-{
+class Timer {
 public:
     Timer() 
     { 
