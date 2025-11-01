@@ -22,6 +22,8 @@ GlfwWindow::GlfwWindow(const WindowProps& props)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
     m_Handle = glfwCreateWindow(props.width, props.height, props.title.c_str(), nullptr, nullptr);
 

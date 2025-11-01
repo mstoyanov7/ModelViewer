@@ -6,6 +6,9 @@ class Renderer {
 public:
     static void Init() {
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_CLAMP);
+        glDepthFunc(GL_LEQUAL);          
+        glClearDepth(1.0);              // default, but be explicit
     }
 
     static void Clear(float r, float g, float b, float a) {

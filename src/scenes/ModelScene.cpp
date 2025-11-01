@@ -70,20 +70,21 @@ bool ModelScene::init(const std::string& objPath) {
 
     // center and scale to a reasonable size (optional)
     glm::vec3 mn, mx; model_->getBounds(mn, mx);
-    glm::vec3 center = 0.5f*(mn+mx);
-    float diag = glm::length(mx - mn);
-    float s = (diag > 0.0001f) ? (2.0f / diag) : 1.0f; // fit in ~2 units
+    glm::vec3 center = 0.5f * (mn + mx);
+    glm::vec3 size   = (mx - mn);
+    float maxSide = std::max(size.x, std::max(size.y, size.z));
 
-    modelM_ = glm::translate(glm::mat4(1.0f), -center) * glm::scale(glm::mat4(1.0f), glm::vec3(s));
+    float s = (maxSide > 1e-6f) ? (1.0f / maxSide) : 1.0f;
+
+    modelM_ = glm::scale(glm::mat4(1.0f), glm::vec3(s));
+    modelM_ = glm::translate(modelM_, -center);
 
     initialized_ = true;
     return true;
 }
 
 void ModelScene::update(float dt) {
-    spin_ += dt * 0.4f;
-    // slow turn for presentation
-    modelM_ = glm::rotate(modelM_, 0.0f, glm::vec3(0,1,0)); // keep as-is, or use spin_ if you want
+    (void)dt; 
 }
 
 void ModelScene::render(const Camera& cam) {
