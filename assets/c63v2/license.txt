@@ -1,0 +1,11 @@
+Model Information:
+* title:	Mercedes Benz C63 AMG
+* source:	https://sketchfab.com/3d-models/mercedes-benz-c63-amg-38eb721c70d34046a60ef7a8984024c5
+* author:	LuizZed36 (https://sketchfab.com/LuizZed36)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Mercedes Benz C63 AMG" (https://sketchfab.com/3d-models/mercedes-benz-c63-amg-38eb721c70d34046a60ef7a8984024c5) by LuizZed36 (https://sketchfab.com/LuizZed36) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -2,15 +2,21 @@
 in vec3 vCol;
 in vec3 vNormal;
 in vec3 vWorldPos;
+in vec2 vUV;
 
 out vec4 FragColor;
 
 uniform vec3 uLightDir;    // normalized, world space (direction towards surface)
 uniform vec3 uViewPos;     // camera position, world space
 uniform bool uUseLighting;
+uniform bool uHasBaseColorTex;
+uniform sampler2D uBaseColorTex;
 
 void main(){
     vec3 baseColor = vCol;
+    if (uHasBaseColorTex) {
+        baseColor = texture(uBaseColorTex, vUV).rgb;
+    }
 
     if(!uUseLighting){
         FragColor = vec4(baseColor, 1.0);
@@ -32,4 +38,3 @@ void main(){
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 }
-

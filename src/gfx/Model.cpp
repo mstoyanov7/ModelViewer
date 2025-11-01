@@ -9,12 +9,12 @@
 #include <limits>
 #include <cctype>
 #include <algorithm>
+#include <unordered_map>
 
-// tinygltf: header-only glTF 2.0 loader (geometry only here)
+// tinygltf: header-only glTF 2.0 loader (enable STB image for textures)
 #define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_NO_EXTERNAL_IMAGE
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <tiny_gltf.h>
 
 Model::~Model() 
@@ -34,7 +34,13 @@ void Model::shutdown()
         glDeleteVertexArrays(1, &vao_); 
         vao_ = 0; 
     }
+    if (!textures_.empty())
+    {
+        glDeleteTextures((GLsizei)textures_.size(), textures_.data());
+        textures_.clear();
+    }
     vertexCount_ = 0;
+    draws_.clear();
 }
 
 bool Model::loadOBJ(const std::string& path) 
@@ -79,9 +85,10 @@ bool Model::loadOBJ(const std::string& path)
                 continue; 
             }
 
-            glm::vec3 pos[3]; glm::vec3 nrm[3]; glm::vec3 col[3];
+            glm::vec3 pos[3]; glm::vec3 nrm[3]; glm::vec3 col[3]; glm::vec2 uv[3];
             bool hasN[3] = {false, false, false};
             bool hasC[3] = {false, false, false};
+            bool hasUV[3] = {false, false, false};
 
             for (int v = 0; v < 3; v++) 
             {
@@ -110,6 +117,17 @@ bool Model::loadOBJ(const std::string& path)
                 {
                     col[v] = glm::vec3(0.75f); // default gray
                 }
+
+                if (idx.texcoord_index >= 0 && !attrib.texcoords.empty())
+                {
+                    hasUV[v] = true;
+                    uv[v].x = attrib.texcoords[2 * idx.texcoord_index + 0];
+                    uv[v].y = attrib.texcoords[2 * idx.texcoord_index + 1];
+                }
+                else
+                {
+                    uv[v] = glm::vec2(0.0f);
+                }
             }
 
             // if any normal missing → compute a flat face normal
@@ -122,7 +140,7 @@ bool Model::loadOBJ(const std::string& path)
             // append 3 vertices
             for (int v = 0; v < 3; ++v) 
             {
-                verts.push_back({pos[v], nrm[v], col[v]});
+                verts.push_back({pos[v], nrm[v], col[v], uv[v]});
                 // expand bounds
                 bmin.x = std::min(bmin.x, pos[v].x); bmax.x = std::max(bmax.x, pos[v].x);
                 bmin.y = std::min(bmin.y, pos[v].y); bmax.y = std::max(bmax.y, pos[v].y);
@@ -153,11 +171,17 @@ bool Model::loadOBJ(const std::string& path)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, nrm));
     glEnableVertexAttribArray(2); // color
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, col));
+    glEnableVertexAttribArray(3); // uv
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, uv));
     glBindVertexArray(0);
 
     vertexCount_ = static_cast<int>(verts.size());
     bmin_ = bmin; 
     bmax_ = bmax;
+
+    // Single draw covering all vertices; OBJ materials/textures not yet bound
+    draws_.clear();
+    draws_.push_back({0, vertexCount_, 0});
 
     return true;
 }
@@ -189,14 +213,21 @@ static bool readAccessorFloatVecN(const tinygltf::Model& m,
 {
     const tinygltf::BufferView& bv = m.bufferViews[acc.bufferView];
     const tinygltf::Buffer& buf = m.buffers[bv.buffer];
-
-    if (acc.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) return false;
     const size_t count = acc.count;
 
-    size_t stride = N * sizeof(float);
-#ifdef TINYGLTF_ENABLE_DRACO
-    // Not enabling DRACO; skip.
-#endif
+    size_t componentSize = 0;
+    bool isFloat = false;
+    float normScale = 1.0f;
+    const bool normalized = acc.normalized;
+    switch (acc.componentType)
+    {
+        case TINYGLTF_COMPONENT_TYPE_FLOAT: componentSize = sizeof(float); isFloat = true; break;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: componentSize = sizeof(uint16_t); normScale = normalized ? (1.0f / 65535.0f) : 1.0f; break;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: componentSize = sizeof(uint8_t); normScale = normalized ? (1.0f / 255.0f) : 1.0f; break;
+        default: return false;
+    }
+
+    size_t stride = N * componentSize;
     if (bv.byteStride) stride = bv.byteStride;
 
     const size_t start = bv.byteOffset + acc.byteOffset;
@@ -205,8 +236,22 @@ static bool readAccessorFloatVecN(const tinygltf::Model& m,
     out.resize(count * N);
     for (size_t i = 0; i < count; ++i)
     {
-        const float* src = reinterpret_cast<const float*>(base + i * stride);
-        for (int k = 0; k < N; ++k) out[i * N + k] = src[k];
+        const unsigned char* src = base + i * stride;
+        if (isFloat)
+        {
+            const float* fsrc = reinterpret_cast<const float*>(src);
+            for (int k = 0; k < N; ++k) out[i * N + k] = fsrc[k];
+        }
+        else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+        {
+            const uint16_t* p = reinterpret_cast<const uint16_t*>(src);
+            for (int k = 0; k < N; ++k) out[i * N + k] = normalized ? (p[k] * normScale) : float(p[k]);
+        }
+        else // UNSIGNED_BYTE
+        {
+            const uint8_t* p = reinterpret_cast<const uint8_t*>(src);
+            for (int k = 0; k < N; ++k) out[i * N + k] = normalized ? (p[k] * normScale) : float(p[k]);
+        }
     }
     return true;
 }
@@ -293,6 +338,44 @@ bool Model::loadGLTF(const std::string& path)
     glm::vec3 bmin{ std::numeric_limits<float>::max() };
     glm::vec3 bmax{ std::numeric_limits<float>::lowest() };
 
+    std::unordered_map<int, unsigned int> texCache; // gltf texture index -> GL id
+
+    auto getOrCreateTexture = [&](int texIndex) -> unsigned int {
+        if (texIndex < 0) return 0U;
+        auto it = texCache.find(texIndex);
+        if (it != texCache.end()) return it->second;
+        const tinygltf::Texture& tex = gltf.textures[texIndex];
+        if (tex.source < 0) { texCache[texIndex] = 0U; return 0U; }
+        const tinygltf::Image& img = gltf.images[tex.source];
+        GLenum fmt = GL_RGBA; int comp = img.component;
+        if (comp == 3) fmt = GL_RGB; else fmt = GL_RGBA;
+        unsigned int gltex = 0;
+        glGenTextures(1, &gltex);
+        glBindTexture(GL_TEXTURE_2D, gltex);
+        // Sampler settings if present
+        GLint minF = GL_LINEAR_MIPMAP_LINEAR, magF = GL_LINEAR;
+        GLint wrapS = GL_REPEAT, wrapT = GL_REPEAT;
+        if (tex.sampler >= 0 && tex.sampler < (int)gltf.samplers.size())
+        {
+            const tinygltf::Sampler& smp = gltf.samplers[tex.sampler];
+            if (smp.minFilter != 0) minF = smp.minFilter;
+            if (smp.magFilter != 0) magF = smp.magFilter;
+            if (smp.wrapS != 0) wrapS = smp.wrapS;
+            if (smp.wrapT != 0) wrapT = smp.wrapT;
+        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minF);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magF);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+        GLint internal = (fmt == GL_RGB) ? GL_SRGB8 : GL_SRGB8_ALPHA8;
+        glTexImage2D(GL_TEXTURE_2D, 0, internal, img.width, img.height, 0, fmt, GL_UNSIGNED_BYTE, img.image.data());
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        texCache[texIndex] = gltex;
+        textures_.push_back(gltex);
+        return gltex;
+    };
+
     auto appendPrimitive = [&](const tinygltf::Primitive& prim, const glm::mat4& M)
     {
         if (prim.mode != TINYGLTF_MODE_TRIANGLES) return; // skip non-triangles
@@ -320,11 +403,25 @@ bool Model::loadGLTF(const std::string& path)
         if (itC != prim.attributes.end())
         {
             const tinygltf::Accessor& accC = gltf.accessors[itC->second];
-            if (accC.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-            {
-                if (accC.type == TINYGLTF_TYPE_VEC3) { readAccessorFloatVecN(gltf, accC, 3, col); colN = 3; }
-                else if (accC.type == TINYGLTF_TYPE_VEC4) { readAccessorFloatVecN(gltf, accC, 4, col); colN = 4; }
-            }
+            if (accC.type == TINYGLTF_TYPE_VEC3) { readAccessorFloatVecN(gltf, accC, 3, col); colN = 3; }
+            else if (accC.type == TINYGLTF_TYPE_VEC4) { readAccessorFloatVecN(gltf, accC, 4, col); colN = 4; }
+        }
+
+        // UV sets
+        std::vector<float> uv0, uv1;
+        auto itUV0 = prim.attributes.find("TEXCOORD_0");
+        if (itUV0 != prim.attributes.end())
+        {
+            const tinygltf::Accessor& accUV0 = gltf.accessors[itUV0->second];
+            if (accUV0.type == TINYGLTF_TYPE_VEC2)
+                readAccessorFloatVecN(gltf, accUV0, 2, uv0);
+        }
+        auto itUV1 = prim.attributes.find("TEXCOORD_1");
+        if (itUV1 != prim.attributes.end())
+        {
+            const tinygltf::Accessor& accUV1 = gltf.accessors[itUV1->second];
+            if (accUV1.type == TINYGLTF_TYPE_VEC2)
+                readAccessorFloatVecN(gltf, accUV1, 2, uv1);
         }
 
         // indices optional
@@ -355,6 +452,62 @@ bool Model::loadGLTF(const std::string& path)
             return n;
         };
 
+        // Determine texture, texCoord set, and KHR_texture_transform if present
+        unsigned int gltex = 0;
+        int uvSet = 0; // which TEXCOORD_n to use
+        glm::vec2 uvScale(1.0f, 1.0f), uvOffset(0.0f, 0.0f);
+        float uvRotate = 0.0f;
+        if (prim.material >= 0 && prim.material < (int)gltf.materials.size())
+        {
+            const tinygltf::Material& mat = gltf.materials[prim.material];
+            int tindex = -1;
+            const auto& bct = mat.pbrMetallicRoughness.baseColorTexture;
+            if (bct.index >= 0) tindex = bct.index;
+            auto itv = mat.values.find("baseColorTexture");
+            if (tindex < 0 && itv != mat.values.end() && itv->second.TextureIndex() >= 0)
+                tindex = itv->second.TextureIndex();
+            // texCoord set
+            if (bct.texCoord >= 0) uvSet = bct.texCoord;
+            // KHR_texture_transform
+            auto extIt = bct.extensions.find("KHR_texture_transform");
+            if (extIt != bct.extensions.end())
+            {
+                const tinygltf::Value& ext = extIt->second;
+                if (ext.Has("scale"))
+                {
+                    const auto& a = ext.Get("scale");
+                    if (a.IsArray() && a.ArrayLen() >= 2)
+                        uvScale = glm::vec2((float)a.Get(0).GetNumberAsDouble(), (float)a.Get(1).GetNumberAsDouble());
+                }
+                if (ext.Has("offset"))
+                {
+                    const auto& a = ext.Get("offset");
+                    if (a.IsArray() && a.ArrayLen() >= 2)
+                        uvOffset = glm::vec2((float)a.Get(0).GetNumberAsDouble(), (float)a.Get(1).GetNumberAsDouble());
+                }
+                if (ext.Has("rotation"))
+                {
+                    uvRotate = (float)ext.Get("rotation").GetNumberAsDouble();
+                }
+                if (ext.Has("texCoord"))
+                {
+                    uvSet = (int)ext.Get("texCoord").GetNumberAsInt();
+                }
+            }
+            gltex = getOrCreateTexture(tindex);
+        }
+
+        auto applyUVXform = [&](glm::vec2 uv){
+            uv *= uvScale;
+            if (uvRotate != 0.0f)
+            {
+                float c = cosf(uvRotate), s = sinf(uvRotate);
+                uv = glm::vec2(c*uv.x - s*uv.y, s*uv.x + c*uv.y);
+            }
+            uv += uvOffset;
+            return uv;
+        };
+
         auto emitTri = [&](uint32_t i0, uint32_t i1, uint32_t i2){
             glm::vec3 lp0{ pos[3*i0+0], pos[3*i0+1], pos[3*i0+2] };
             glm::vec3 lp1{ pos[3*i1+0], pos[3*i1+1], pos[3*i1+2] };
@@ -368,9 +521,17 @@ bool Model::loadGLTF(const std::string& path)
             glm::vec3 c0 = getCol(i0);
             glm::vec3 c1 = getCol(i1);
             glm::vec3 c2 = getCol(i2);
-            verts.push_back({p0,n0,c0});
-            verts.push_back({p1,n1,c1});
-            verts.push_back({p2,n2,c2});
+            auto getUV = [&](size_t i){
+                const std::vector<float>& src = (uvSet == 1 && !uv1.empty()) ? uv1 : uv0;
+                if (src.empty()) return glm::vec2(0.0f);
+                return glm::vec2(src[2*i+0], src[2*i+1]);
+            };
+            glm::vec2 t0 = applyUVXform(getUV(i0));
+            glm::vec2 t1 = applyUVXform(getUV(i1));
+            glm::vec2 t2 = applyUVXform(getUV(i2));
+            verts.push_back({p0,n0,c0,t0});
+            verts.push_back({p1,n1,c1,t1});
+            verts.push_back({p2,n2,c2,t2});
             // bounds
             const glm::vec3 pp[3] = {p0,p1,p2};
             for (int j=0;j<3;++j) {
@@ -380,6 +541,7 @@ bool Model::loadGLTF(const std::string& path)
             }
         };
 
+        int vertStart = (int)verts.size();
         if (hasIndices)
         {
             for (size_t i=0;i+2<indices.size(); i+=3)
@@ -391,6 +553,10 @@ bool Model::loadGLTF(const std::string& path)
             for (size_t i=0;i+2<vcount; i+=3)
                 emitTri((uint32_t)i, (uint32_t)i+1, (uint32_t)i+2);
         }
+
+        int added = (int)verts.size() - vertStart;
+        if (added > 0)
+            draws_.push_back({vertStart, added, gltex});
     };
 
     // Iterate default scene nodes and gather all primitives
@@ -436,6 +602,8 @@ bool Model::loadGLTF(const std::string& path)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, nrm));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, col));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, uv));
     glBindVertexArray(0);
 
     vertexCount_ = static_cast<int>(verts.size());
@@ -464,6 +632,29 @@ void Model::render(const Camera& cam, const glm::mat4& model, Shader& shader) co
     glUniformMatrix3fv(shader.loc("uNormalMat"), 1, GL_FALSE, glm::value_ptr(normalMat));
 
     glBindVertexArray(vao_);
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount_);
+    if (draws_.empty())
+    {
+        glUniform1i(shader.loc("uHasBaseColorTex"), 0);
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount_);
+    }
+    else
+    {
+        for (const auto& d : draws_)
+        {
+            if (d.tex)
+            {
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, d.tex);
+                glUniform1i(shader.loc("uBaseColorTex"), 0);
+                glUniform1i(shader.loc("uHasBaseColorTex"), 1);
+            }
+            else
+            {
+                glUniform1i(shader.loc("uHasBaseColorTex"), 0);
+            }
+            glDrawArrays(GL_TRIANGLES, d.first, d.count);
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     glBindVertexArray(0);
 }

@@ -12,7 +12,7 @@ void ModelViewerApp::lazyInitIfNeeded()
     camera_->setRadius(4.0f); 
     camera_->setYawPitch(0.7f, 0.5f);
 
-    grid_  = std::make_unique<GridAxes>(); 
+    grid_ = std::make_unique<GridAxes>(); 
     grid_->init(20, 1.0f);
 
     scene_ = std::make_unique<CubeScene>(); 
@@ -23,7 +23,7 @@ void ModelViewerApp::lazyInitIfNeeded()
     {
         modelScene_ = std::make_unique<ModelScene>();
         // Change path if different:
-        if (!modelScene_->init("assets/c63/scene.gltf")) 
+        if (!modelScene_->init("assets/c63v2/scene.gltf")) 
         {
             // optional: printf error, keep cube as fallback
             printf("OBJ load error: %s\n", modelScene_->lastError().c_str());

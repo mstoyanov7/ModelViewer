@@ -35,12 +35,16 @@ public:
     void shutdown();
 
 private:
-    struct Vertex { glm::vec3 pos; glm::vec3 nrm; glm::vec3 col; };
+    struct Vertex { glm::vec3 pos; glm::vec3 nrm; glm::vec3 col; glm::vec2 uv; };
+    struct Draw { int first = 0; int count = 0; unsigned int tex = 0; };
 
     GLuint vao_ = 0, vbo_ = 0;
     int vertexCount_ = 0; // non-indexed triangles
     glm::vec3 bmin_{0}, bmax_{0}; // AABB in object space
     std::string err_;
+
+    std::vector<Draw> draws_;
+    std::vector<unsigned int> textures_; // owned GL textures
 
     static void computeFlatNormal(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, glm::vec3& n);
 };
