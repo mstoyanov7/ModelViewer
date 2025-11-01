@@ -72,9 +72,14 @@ void GridAxes::render(const Camera& cam)
     glUniformMatrix4fv(shader_->loc("uView"), 1, GL_FALSE, &cam.view()[0][0]);
     glUniformMatrix4fv(shader_->loc("uProj"), 1, GL_FALSE, &cam.proj()[0][0]);
 
+    // Draw grid without writing depth to reduce z-fighting with the scene
+    GLboolean depthMask = GL_TRUE;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
+    glDepthMask(GL_FALSE);
     glBindVertexArray(vao_);
     glDrawArrays(GL_LINES, 0, gridVertexCount_);
     glBindVertexArray(0);
+    glDepthMask(depthMask);
 }
 
 void GridAxes::shutdown() 

@@ -23,7 +23,7 @@ void ModelViewerApp::lazyInitIfNeeded()
     {
         modelScene_ = std::make_unique<ModelScene>();
         // Change path if different:
-        if (!modelScene_->init("assets/Koenigsegg.obj")) 
+        if (!modelScene_->init("assets/c63/scene.gltf")) 
         {
             // optional: printf error, keep cube as fallback
             printf("OBJ load error: %s\n", modelScene_->lastError().c_str());

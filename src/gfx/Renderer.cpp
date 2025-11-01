@@ -3,8 +3,9 @@
 void Renderer::Init() 
 {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH_CLAMP);
-    glDepthFunc(GL_LEQUAL);          
+    // Depth clamp can produce artifacts; keep it off for better depth behavior
+    glDisable(GL_DEPTH_CLAMP);
+    glDepthFunc(GL_LESS);
     glClearDepth(1.0);              // default, but be explicit
 }
 
@@ -24,7 +25,7 @@ void Renderer::SetCull(bool on)
     if (on) 
     { 
         glEnable(GL_CULL_FACE); 
-        glCullFace(GL_BACK); 
+        glCullFace(GL_FRONT); 
         glFrontFace(GL_CCW); 
     }
     else

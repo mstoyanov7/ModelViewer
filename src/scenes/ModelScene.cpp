@@ -18,7 +18,7 @@ bool ModelScene::init(const std::string& objPath)
 
     shader_ = Shader::FromFiles("assets/shaders/phong.vert", "assets/shaders/phong.frag");
     model_  = std::make_unique<Model>();
-    if (!model_->loadOBJ(objPath)) 
+    if (!model_->load(objPath)) 
     {
         err_ = model_->lastError();
         shader_.reset();
@@ -64,7 +64,7 @@ void ModelScene::render(const Camera& cam)
 
 void ModelScene::shutdown() 
 {
-    if (model_)  model_->shutdown();
+    if (model_) model_->shutdown();
     model_.reset();
     shader_.reset();
     initialized_ = false;

@@ -1,0 +1,11 @@
+Model Information:
+* title:	2012 Mercedes-Benz C63 AMG Black Series (W204)
+* source:	https://sketchfab.com/3d-models/2012-mercedes-benz-c63-amg-black-series-w204-579aa14ef12e4f3da84367337ac876b2
+* author:	DisneyCars (https://sketchfab.com/supercarmodels)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "2012 Mercedes-Benz C63 AMG Black Series (W204)" (https://sketchfab.com/3d-models/2012-mercedes-benz-c63-amg-black-series-w204-579aa14ef12e4f3da84367337ac876b2) by DisneyCars (https://sketchfab.com/supercarmodels) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

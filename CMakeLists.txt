@@ -44,6 +44,14 @@ FetchContent_MakeAvailable(tinyobjloader)
 
 find_package(OpenGL REQUIRED)
 
+# tinygltf (header-only) via FetchContent
+FetchContent_Declare(
+  tinygltf
+  GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+  GIT_TAG v2.8.21
+)
+FetchContent_MakeAvailable(tinygltf)
+
 add_library(glad external/glad/src/glad.c)
 target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/external/glad/include)
 
@@ -71,6 +79,7 @@ add_executable(model_viewer
 target_include_directories(model_viewer PRIVATE
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/external/glad/include
+  ${tinygltf_SOURCE_DIR}
 )
 
 if(MSVC)
