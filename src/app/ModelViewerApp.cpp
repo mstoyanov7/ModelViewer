@@ -10,7 +10,7 @@ void ModelViewerApp::lazyInitIfNeeded()
     camera_->setPerspective(glm::radians(60.0f), 1280.0f/720.0f, 0.2f, 200.0f);
     camera_->setTarget({0,0,0}); 
     camera_->setRadius(4.0f); 
-    camera_->setYawPitch(0.7f, 0.5f);
+    camera_->setYawPitch(0.7f, -0.5f);
 
     grid_ = std::make_unique<GridAxes>(); 
     grid_->init(20, 1.0f);
