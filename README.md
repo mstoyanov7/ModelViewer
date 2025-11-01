@@ -31,6 +31,9 @@ It’s developed as a **university project** to explore real-time 3D rendering, 
 2. Run `build_windows_debug.bat` or `build_windows_release.bat`
 
 ### Linux
+
+`sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev`
+
 ```bash
 git clone https://github.com/mstoyanov7/ModelViewer.git
 cd ModelViewer
