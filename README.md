@@ -35,8 +35,9 @@ It’s developed as a **university project** to explore real-time 3D rendering, 
 
 ```bash
 git clone https://github.com/mstoyanov7/ModelViewer.git
+cd ModelViewer
 mkdir build && cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
+cmake .. -G "Visual Studio 16 2019" -A x64
 cmake --build . --config Release
 ```
 
