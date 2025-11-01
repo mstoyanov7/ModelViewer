@@ -120,6 +120,7 @@ void CubeScene::render(const Camera& cam)
     // Phong shader defaults used by cube (no textures, factor=1)
     glUniform1i(shader_->loc("uHasBaseColorTex"), 0);
     glUniform4f(shader_->loc("uBaseColorFactor"), 1.0f, 1.0f, 1.0f, 1.0f);
+    glUniform1i(shader_->loc("uUseEnv"), 0);
 
     glBindVertexArray(vao_);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount_);

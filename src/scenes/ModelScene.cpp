@@ -59,6 +59,12 @@ void ModelScene::render(const Camera& cam)
     glUniform3f(shader_->loc("uViewPos"), 4.0f, 3.0f, 4.0f); // TODO: supply real camera eye
     glUniform1i(shader_->loc("uUseLighting"), lighting_ ? 1 : 0);
 
+    // Environment lighting to brighten and add reflections
+    glUniform1i(shader_->loc("uUseEnv"), 1);
+    glUniform3f(shader_->loc("uEnvSkyColor"),   0.60f, 0.70f, 0.90f);
+    glUniform3f(shader_->loc("uEnvGroundColor"),0.35f, 0.35f, 0.35f);
+    glUniform1f(shader_->loc("uEnvIntensity"),  0.6f);
+
     model_->render(cam, modelM_, *shader_);
 }
 
