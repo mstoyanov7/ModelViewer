@@ -29,6 +29,12 @@ It’s developed as a **university project** to explore real-time 3D rendering, 
 ### Windows
 1. Install **CMake** and **Visual Studio 2022**  
 2. Run `build_windows_debug.bat` or `build_windows_release.bat`
+3. Build manually
+```bash
+git clone https://github.com/mstoyanov7/ModelViewer.git
+mkdir build && cd build
+cmake .. -G "Visual Studio 17 2022" -A x64
+cmake --build . --config Release
 
 ### Linux
 
