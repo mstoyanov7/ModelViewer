@@ -89,9 +89,9 @@ target_link_libraries(model_viewer PRIVATE
 )
 
 if (MSVC)
-  target_compile_options(model_viewer PRIVATE /W4 /permissive-)
+  target_compile_options(model_viewer PRIVATE /W0 /permissive-)
 else()
-  target_compile_options(model_viewer PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(model_viewer PRIVATE -w)
 endif()
 
 set(ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")

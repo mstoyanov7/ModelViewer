@@ -198,7 +198,6 @@ void TextOverlay::drawString(int fbWidth, int fbHeight, float x, float y, float 
 {
     // Build triangle list in pixel space then convert to NDC on upload
     std::vector<float> xy; xy.reserve(text.size() * 6 * 2 * 6);
-    const float px = 1.0f, py = 1.0f; // pixel size in font grid
     float cursor = x;
     for (char c : text)
     {
