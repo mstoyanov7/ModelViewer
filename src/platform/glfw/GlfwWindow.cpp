@@ -24,6 +24,8 @@ GlfwWindow::GlfwWindow(const WindowProps& props)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
+    // Request 4x MSAA for smoother edges
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     m_Handle = glfwCreateWindow(props.width, props.height, props.title.c_str(), nullptr, nullptr);
 

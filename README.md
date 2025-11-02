@@ -9,6 +9,7 @@ It’s developed as a **university project** to explore real-time 3D rendering, 
 - Recursively scans `assets/` for models and lets you switch at runtime (←/→)  
 - Orbit/pan/zoom camera with helpful on‑screen shortcuts  
 - Depth testing and shader-based rendering  
+- 4x MSAA anti-aliasing for smoother edges  
 - Easy to extend for new 3D scenes or features  
 
 ## 🕹️ Controls

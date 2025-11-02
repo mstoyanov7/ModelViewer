@@ -7,6 +7,8 @@ void Renderer::Init()
     glDisable(GL_DEPTH_CLAMP);
     glDepthFunc(GL_LESS);
     glClearDepth(1.0);              // default, but be explicit
+    // Enable multisampling (MSAA must be requested at window creation)
+    glEnable(GL_MULTISAMPLE);
 }
 
 void Renderer::Clear(float r, float g, float b, float a) 
