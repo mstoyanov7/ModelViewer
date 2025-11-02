@@ -239,6 +239,7 @@ void TextOverlay::renderHelp(int fbWidth, int fbHeight, bool modelMode) const
     const char* linesModel[] = {
         "M - Toggle Model/Cube",
         "L - Toggle Lighting",
+        "A - Toggle Anti-Aliasing",
         "LEFT/RIGHT - Switch Model",
         "F - Toggle Wireframe",
         "C - Toggle Face Culling",
@@ -251,6 +252,7 @@ void TextOverlay::renderHelp(int fbWidth, int fbHeight, bool modelMode) const
     const char* linesCube[] = {
         "M - Toggle Model/Cube",
         "L - Toggle Lighting",
+        "A - Toggle Anti-Aliasing",
         "F - Toggle Wireframe",
         "C - Toggle Face Culling",
         "R - Reset Camera",

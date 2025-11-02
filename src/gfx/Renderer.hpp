@@ -8,4 +8,5 @@ public:
     static void Clear(float r, float g, float b, float a);
     static void SetWireframe(bool on);
     static void SetCull(bool on);
+    static void SetMSAA(bool on);
 };

@@ -35,3 +35,9 @@ void Renderer::SetCull(bool on)
         glDisable(GL_CULL_FACE);
     }    
 }
+
+void Renderer::SetMSAA(bool on)
+{
+    if (on) glEnable(GL_MULTISAMPLE);
+    else     glDisable(GL_MULTISAMPLE);
+}

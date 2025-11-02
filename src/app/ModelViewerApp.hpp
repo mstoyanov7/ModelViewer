@@ -52,6 +52,7 @@ private:
     bool lighting_ = true;
     bool showModel_ = false;
     bool showHelp_ = true;
+    bool msaa_ = true;
 
     TextOverlay overlay_;
 

@@ -169,6 +169,16 @@ void ModelViewerApp::handleToggles()
     if (hNow && !hPrev) { showHelp_ = !showHelp_; }
     hPrev = hNow;
 
+    // A = MSAA toggle
+    static bool aPrev = false;
+    bool aNow = Input::IsKeyPressed(/*GLFW_KEY_A*/ 65);
+    if (aNow && !aPrev)
+    {
+        msaa_ = !msaa_;
+        Renderer::SetMSAA(msaa_);
+    }
+    aPrev = aNow;
+
     // Arrow keys: Left/Right to cycle models when in Model mode
     static bool leftPrev = false, rightPrev = false;
     bool leftNow = Input::IsKeyPressed(263);  // GLFW_KEY_LEFT

@@ -20,6 +20,7 @@ It’s developed as a **university project** to explore real-time 3D rendering, 
   - **R** – Reset camera  
   - **F** – Toggle wireframe  
   - **C** – Toggle face culling  
+  - **A** – Toggle anti-aliasing (MSAA)  
   - **L** – Toggle lighting  
   - **H** – Toggle help overlay  
 - Scenes
