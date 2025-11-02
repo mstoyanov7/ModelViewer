@@ -60,6 +60,7 @@ git clone https://github.com/mstoyanov7/ModelViewer.git
 cd ModelViewer
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
+```
 
 ## 📦 Loading Your Own Models (glTF)
 
