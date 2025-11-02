@@ -80,9 +80,9 @@ void ModelScene::render(const Camera& cam)
 
     // Environment lighting to brighten and add reflections
     glUniform1i(shader_->loc("uUseEnv"), 1);
-    glUniform3f(shader_->loc("uEnvSkyColor"),   0.60f, 0.70f, 0.90f);
-    glUniform3f(shader_->loc("uEnvGroundColor"),0.35f, 0.35f, 0.35f);
-    glUniform1f(shader_->loc("uEnvIntensity"),  0.6f);
+    glUniform3f(shader_->loc("uEnvSkyColor"),   0.70f, 0.78f, 0.95f);
+    glUniform3f(shader_->loc("uEnvGroundColor"),0.50f, 0.50f, 0.52f);
+    glUniform1f(shader_->loc("uEnvIntensity"),  lighting_ ? 0.75f : 0.50f);
 
     model_->render(cam, modelM_, *shader_);
 }

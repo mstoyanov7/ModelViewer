@@ -146,10 +146,8 @@ void ModelViewerApp::handleToggles()
     if (lNow && !lPrev) 
     {
         lighting_ = !lighting_;
-        if (scene_)
-        { 
-            scene_->setLighting(lighting_);
-        }
+        if (scene_) { scene_->setLighting(lighting_); }
+        if (modelScene_) { modelScene_->setLighting(lighting_); }
     }
 
     // M = toggle ModelScene/CubeScene

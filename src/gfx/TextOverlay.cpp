@@ -238,6 +238,7 @@ void TextOverlay::renderHelp(int fbWidth, int fbHeight, bool modelMode) const
     const char* title = "Help";
     const char* linesModel[] = {
         "M - Toggle Model/Cube",
+        "L - Toggle Lighting",
         "LEFT/RIGHT - Switch Model",
         "F - Toggle Wireframe",
         "C - Toggle Face Culling",
