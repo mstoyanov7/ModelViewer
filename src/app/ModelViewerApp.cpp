@@ -230,8 +230,8 @@ void ModelViewerApp::OnUpdate(double dt)
 
 void ModelViewerApp::OnRender() 
 {
-    // Lighter background (soft light gray)
-    Renderer::Clear(0.92f, 0.93f, 0.95f, 1.0f);
+    // Lighter background (soft gray)
+    Renderer::Clear(0.6196f, 0.5255f, 0.5255f, 1.0f);
     if (grid_ && camera_) 
     {
         grid_->render(*camera_);
