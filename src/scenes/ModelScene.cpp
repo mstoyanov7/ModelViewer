@@ -14,16 +14,35 @@ ModelScene::~ModelScene()
 
 bool ModelScene::init(const std::string& objPath) 
 {
-    if (initialized_) return true;
+    if (!shader_)
+    {
+        shader_ = Shader::FromFiles("assets/shaders/phong.vert", "assets/shaders/phong.frag");
+    }
+    if (!model_)
+    {
+        model_  = std::make_unique<Model>();
+    }
+    return load(objPath);
+}
 
-    shader_ = Shader::FromFiles("assets/shaders/phong.vert", "assets/shaders/phong.frag");
-    model_  = std::make_unique<Model>();
+bool ModelScene::load(const std::string& objPath)
+{
+    if (!shader_)
+    {
+        shader_ = Shader::FromFiles("assets/shaders/phong.vert", "assets/shaders/phong.frag");
+    }
+    if (!model_)
+    {
+        model_  = std::make_unique<Model>();
+    }
+    else
+    {
+        model_->shutdown();
+    }
+
     if (!model_->load(objPath)) 
     {
         err_ = model_->lastError();
-        shader_.reset();
-        model_.reset();
-
         return false;
     }
 

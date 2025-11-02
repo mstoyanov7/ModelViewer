@@ -18,6 +18,8 @@
 
 #include <memory>
 #include "gfx/TextOverlay.hpp"
+#include <vector>
+#include <string>
 
 class ModelViewerApp : public Application 
 {
@@ -34,6 +36,8 @@ private:
     void lazyInitIfNeeded();
     void handleCameraInput(float dt);
     void handleToggles();
+    void scanModels();
+    void switchModel(int dir);
 
     std::unique_ptr<CubeScene> scene_;
     std::unique_ptr<GridAxes> grid_;
@@ -50,4 +54,7 @@ private:
     bool showHelp_ = true;
 
     TextOverlay overlay_;
+
+    std::vector<std::string> modelPaths_;
+    int currentModelIndex_ = -1;
 };

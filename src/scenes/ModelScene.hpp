@@ -17,6 +17,9 @@ public:
     // call before first render
     bool init(const std::string& objPath);
 
+    // Load or reload a model file (.gltf/.glb). Keeps shader.
+    bool load(const std::string& objPath);
+
     void update(float dt);
     void render(const Camera& cam);
     void shutdown();

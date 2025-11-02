@@ -1,4 +1,6 @@
 #include "app/ModelViewerApp.hpp"
+#include <filesystem>
+#include <cctype>
 
 void ModelViewerApp::lazyInitIfNeeded() 
 {
@@ -20,20 +22,19 @@ void ModelViewerApp::lazyInitIfNeeded()
     scene_ = std::make_unique<CubeScene>(); 
     scene_->init();
 
-    // Prepare ModelScene but don't activate until user toggles
+    // Prepare ModelScene and discover available models
     if (!modelScene_) 
     {
         modelScene_ = std::make_unique<ModelScene>();
-        // Change path if different:
-        if (!modelScene_->init("assets/c63v2/scene.gltf")) 
+        modelScene_->setLighting(true);
+    }
+    scanModels();
+    if (!modelPaths_.empty())
+    {
+        currentModelIndex_ = 0;
+        if (!modelScene_->init(modelPaths_[currentModelIndex_]))
         {
-            // optional: printf error, keep cube as fallback
-            printf("OBJ load error: %s\n", modelScene_->lastError().c_str());
-            modelScene_.reset();
-        } 
-        else 
-        {
-            modelScene_->setLighting(true);
+            printf("Model load error: %s\n", modelScene_->lastError().c_str());
         }
     }
 }
@@ -169,6 +170,18 @@ void ModelViewerApp::handleToggles()
     bool hNow = Input::IsKeyPressed(/*GLFW_KEY_H*/ 72);
     if (hNow && !hPrev) { showHelp_ = !showHelp_; }
     hPrev = hNow;
+
+    // Arrow keys: Left/Right to cycle models when in Model mode
+    static bool leftPrev = false, rightPrev = false;
+    bool leftNow = Input::IsKeyPressed(263);  // GLFW_KEY_LEFT
+    bool rightNow = Input::IsKeyPressed(262); // GLFW_KEY_RIGHT
+    if (showModel_ && !modelPaths_.empty() && modelScene_)
+    {
+        if (leftNow && !leftPrev) { switchModel(-1); }
+        if (rightNow && !rightPrev) { switchModel(+1); }
+    }
+    leftPrev = leftNow;
+    rightPrev = rightNow;
 }
 
 void ModelViewerApp::OnUpdate(double dt) 
@@ -180,12 +193,27 @@ void ModelViewerApp::OnUpdate(double dt)
     {
         char buf[128]; const double fps = frames_ / accum_;
 
-        snprintf(buf, sizeof(buf),
-            "OpenGL — Cube (Orbit) | %.1f FPS  [%s%s%s]",
-            fps,
-            wireframe_ ? "WF " : "",
-            cull_      ? "Cull " : "",
-            lighting_  ? "Light" : "NoLight");
+        if (showModel_ && currentModelIndex_ >= 0 && currentModelIndex_ < (int)modelPaths_.size())
+        {
+            // Show current model file name
+            const char* file = modelPaths_[currentModelIndex_].c_str();
+            snprintf(buf, sizeof(buf),
+                "OpenGL — Model | %.1f FPS [%s%s%s] — %s",
+                fps,
+                wireframe_ ? "WF " : "",
+                cull_      ? "Cull " : "",
+                lighting_  ? "Light" : "NoLight",
+                file);
+        }
+        else
+        {
+            snprintf(buf, sizeof(buf),
+                "OpenGL — Cube (Orbit) | %.1f FPS  [%s%s%s]",
+                fps,
+                wireframe_ ? "WF " : "",
+                cull_      ? "Cull " : "",
+                lighting_  ? "Light" : "NoLight");
+        }
 
         m_Window->SetTitle(buf); 
         accum_ = 0.0; 
@@ -242,4 +270,40 @@ void ModelViewerApp::OnResize(int w, int h)
     {
         camera_->setAspect(float(w) / float(h));
     } 
+}
+
+void ModelViewerApp::scanModels()
+{
+    using std::filesystem::recursive_directory_iterator;
+    using std::filesystem::path;
+    modelPaths_.clear();
+    try
+    {
+        for (const auto& entry : recursive_directory_iterator("assets"))
+        {
+            if (!entry.is_regular_file()) continue;
+            path p = entry.path();
+            auto ext = p.extension().string();
+            for (auto& c : ext) c = (char)tolower((unsigned char)c);
+            if (ext == ".gltf" || ext == ".glb")
+            {
+                modelPaths_.push_back(p.string());
+            }
+        }
+    }
+    catch (...) { /* ignore scan errors; leave list empty */ }
+}
+
+void ModelViewerApp::switchModel(int dir)
+{
+    if (modelPaths_.empty() || !modelScene_) return;
+    if (currentModelIndex_ < 0) currentModelIndex_ = 0;
+    const int n = (int)modelPaths_.size();
+    currentModelIndex_ = (currentModelIndex_ + dir) % n;
+    if (currentModelIndex_ < 0) currentModelIndex_ += n;
+    const std::string& path = modelPaths_[currentModelIndex_];
+    if (!modelScene_->load(path))
+    {
+        printf("Model load error: %s\n", modelScene_->lastError().c_str());
+    }
 }
