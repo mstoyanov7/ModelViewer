@@ -40,7 +40,7 @@ void main(){
     float spec = pow(max(dot(R, V), 0.0), 32.0);
 
     vec3 baseColor = base.rgb;
-    vec3 ambient  = 0.12 * baseColor;
+    vec3 ambient  = 0.32 * baseColor;
     vec3 diffuse  = 0.88 * diff * baseColor;
     vec3 specular = 0.25 * spec * vec3(1.0);
 
